@@ -12731,13 +12731,13 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 </class>
 </classes>
 <parts>
-<part name="U$1" library="Mine" deviceset="RFM98" device=""/>
+<part name="U1" library="Mine" deviceset="RFM98" device=""/>
 <part name="IC1" library="dtb" deviceset="STM32F0" device=""/>
 <part name="SW1" library="SparkFun-Electromechanical" deviceset="ROTARTY_ENCODER" device=""/>
 <part name="JP1" library="SparkFun-Connectors" deviceset="USB_MICROB_PLUG" device="CONN-11752"/>
 <part name="J1" library="dtb" deviceset="JST_2MM_MALE" device=""/>
 <part name="X1" library="con-coax" deviceset="BU-SMA-V" device=""/>
-<part name="U$2" library="dtb" deviceset="NHD-C0216CIZ-FSW" device=""/>
+<part name="U2" library="dtb" deviceset="NHD-C0216CIZ-FSW" device=""/>
 <part name="S2" library="Mine" deviceset="SWITCH-MOMENTARY-2" device="PTH"/>
 <part name="S3" library="Mine" deviceset="SWITCH-MOMENTARY-2" device="PTH"/>
 <part name="LED2" library="led" deviceset="LED" device="3MM"/>
@@ -12746,23 +12746,21 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 <part name="H3" library="Mounting" deviceset="MOUNT-HOLE" device="3.0"/>
 <part name="H4" library="Mounting" deviceset="MOUNT-HOLE" device="3.0"/>
 <part name="H1" library="Mounting" deviceset="MOUNT-HOLE" device="3.0"/>
-<part name="U2" library="SparkFun-PowerIC" deviceset="MCP73831" device=""/>
-<part name="U$3" library="dtb" deviceset="MCP1700" device="TT"/>
-<part name="U$4" library="dtb" deviceset="MCP1700" device="TT"/>
+<part name="IC3" library="SparkFun-PowerIC" deviceset="MCP73831" device=""/>
+<part name="IC4" library="dtb" deviceset="MCP1700" device="TT"/>
+<part name="IC2" library="dtb" deviceset="MCP1700" device="TT"/>
 <part name="U$5" library="Mine" deviceset="DPDTSLIDE" device=""/>
-<part name="X2" library="Mine" deviceset="RN4020" device=""/>
+<part name="U3" library="Mine" deviceset="RN4020" device=""/>
 <part name="+3V1" library="supply1" deviceset="+3V3" device=""/>
 <part name="+3V2" library="supply1" deviceset="+3V3" device=""/>
 <part name="+3V3" library="supply1" deviceset="+3V3" device=""/>
 <part name="GND1" library="supply1" deviceset="GND" device=""/>
-<part name="GND2" library="supply1" deviceset="GND" device=""/>
 <part name="GND3" library="supply1" deviceset="GND" device=""/>
 <part name="GND4" library="supply1" deviceset="GND" device=""/>
 <part name="GND5" library="supply1" deviceset="GND" device=""/>
 <part name="GND6" library="supply1" deviceset="GND" device=""/>
 <part name="+3V4" library="supply1" deviceset="+3V3" device=""/>
 <part name="+3V5" library="supply1" deviceset="+3V3" device=""/>
-<part name="GND7" library="supply1" deviceset="GND" device=""/>
 <part name="GND8" library="supply1" deviceset="GND" device=""/>
 <part name="GND9" library="supply1" deviceset="GND" device=""/>
 <part name="GND10" library="supply1" deviceset="GND" device=""/>
@@ -12782,8 +12780,8 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 <part name="C7" library="resistor" deviceset="C-EU" device="C0603"/>
 <part name="C8" library="resistor" deviceset="C-EU" device="C0603" value="4u7"/>
 <part name="C9" library="resistor" deviceset="C-EU" device="C0603" value="4u7"/>
-<part name="C10" library="resistor" deviceset="C-EU" device="C0603"/>
-<part name="C11" library="resistor" deviceset="C-EU" device="C0603"/>
+<part name="C10" library="resistor" deviceset="C-EU" device="C0603" value="4u7"/>
+<part name="C11" library="resistor" deviceset="C-EU" device="C0603" value="4u7"/>
 <part name="C12" library="resistor" deviceset="C-EU" device="C0603"/>
 <part name="C13" library="resistor" deviceset="C-EU" device="C0603" value="4u7"/>
 <part name="GND15" library="supply1" deviceset="GND" device=""/>
@@ -12835,7 +12833,7 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 <part name="GND32" library="supply1" deviceset="GND" device=""/>
 <part name="R16" library="resistor" deviceset="R-EU_" device="R0603"/>
 <part name="GND33" library="supply1" deviceset="GND" device=""/>
-<part name="U$6" library="SparkFun-FreqCtrl" deviceset="CRYSTAL-GROUNDED" device=""/>
+<part name="X2" library="SparkFun-FreqCtrl" deviceset="CRYSTAL-GROUNDED" device=""/>
 <part name="R17" library="resistor" deviceset="R-EU_" device="R0603"/>
 <part name="C15" library="resistor" deviceset="C-EU" device="C0603"/>
 <part name="C16" library="resistor" deviceset="C-EU" device="C0603"/>
@@ -12850,6 +12848,11 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 <part name="GND38" library="supply1" deviceset="GND" device=""/>
 <part name="GND39" library="supply1" deviceset="GND" device=""/>
 <part name="GND40" library="supply1" deviceset="GND" device=""/>
+<part name="GND2" library="supply1" deviceset="GND" device=""/>
+<part name="GND7" library="supply1" deviceset="GND" device=""/>
+<part name="GND41" library="supply1" deviceset="GND" device=""/>
+<part name="C17" library="resistor" deviceset="C-EU" device="C0603" value="100n"/>
+<part name="GND42" library="supply1" deviceset="GND" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -12859,21 +12862,18 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 <text x="-25.4" y="165.1" size="1.778" layer="91">connect&gt;</text>
 <text x="-27.94" y="172.72" size="1.778" layer="91">connect&gt;</text>
 <text x="88.9" y="154.94" size="1.778" layer="91">nx2301</text>
-<text x="76.2" y="254" size="1.778" layer="91">connect&gt;</text>
 <text x="114.3" y="66.04" size="1.778" layer="91" rot="R90">ESD!</text>
-<text x="76.2" y="256.54" size="1.778" layer="91">connect&gt;</text>
-<text x="76.2" y="243.84" size="1.778" layer="91">connect&gt;</text>
 <text x="-30.48" y="175.26" size="1.778" layer="91">check can connect both </text>
 <text x="71.12" y="175.26" size="1.778" layer="91">check can connect both </text>
 </plain>
 <instances>
-<instance part="U$1" gate="G$1" x="12.7" y="162.56"/>
+<instance part="U1" gate="G$1" x="12.7" y="162.56"/>
 <instance part="IC1" gate="G$1" x="2.54" y="106.68"/>
 <instance part="SW1" gate="G$1" x="147.32" y="0"/>
 <instance part="JP1" gate="G$1" x="137.16" y="66.04"/>
 <instance part="J1" gate="G$1" x="96.52" y="-43.18" rot="R180"/>
 <instance part="X1" gate="G$1" x="38.1" y="172.72" rot="MR0"/>
-<instance part="U$2" gate="G$1" x="121.92" y="162.56"/>
+<instance part="U2" gate="G$1" x="121.92" y="162.56"/>
 <instance part="S2" gate="G$1" x="106.68" y="119.38" rot="R90"/>
 <instance part="S3" gate="G$1" x="116.84" y="119.38" rot="R90"/>
 <instance part="LED2" gate="G$1" x="106.68" y="104.14"/>
@@ -12882,23 +12882,21 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 <instance part="H3" gate="G$1" x="160.02" y="101.6"/>
 <instance part="H4" gate="G$1" x="160.02" y="96.52"/>
 <instance part="H1" gate="G$1" x="154.94" y="101.6"/>
-<instance part="U2" gate="G$1" x="73.66" y="-27.94"/>
-<instance part="U$3" gate="G$1" x="-7.62" y="195.58"/>
-<instance part="U$4" gate="G$1" x="167.64" y="-27.94"/>
+<instance part="IC3" gate="G$1" x="73.66" y="-27.94"/>
+<instance part="IC4" gate="G$1" x="-7.62" y="195.58"/>
+<instance part="IC2" gate="G$1" x="167.64" y="-27.94"/>
 <instance part="U$5" gate="G$1" x="147.32" y="-22.86" rot="R270"/>
-<instance part="X2" gate="G$1" x="121.92" y="254"/>
+<instance part="U3" gate="G$1" x="121.92" y="254"/>
 <instance part="+3V1" gate="G$1" x="-17.78" y="81.28"/>
 <instance part="+3V2" gate="G$1" x="124.46" y="187.96"/>
 <instance part="+3V3" gate="G$1" x="127" y="276.86"/>
 <instance part="GND1" gate="1" x="15.24" y="139.7"/>
-<instance part="GND2" gate="1" x="-7.62" y="185.42"/>
 <instance part="GND3" gate="1" x="127" y="205.74"/>
 <instance part="GND4" gate="1" x="124.46" y="142.24"/>
 <instance part="GND5" gate="1" x="-20.32" y="33.02"/>
 <instance part="GND6" gate="1" x="-20.32" y="53.34"/>
 <instance part="+3V4" gate="G$1" x="-20.32" y="48.26"/>
 <instance part="+3V5" gate="G$1" x="185.42" y="-27.94" rot="R270"/>
-<instance part="GND7" gate="1" x="167.64" y="-40.64"/>
 <instance part="GND8" gate="1" x="96.52" y="-35.56" rot="R180"/>
 <instance part="GND9" gate="1" x="86.36" y="-30.48" rot="R90"/>
 <instance part="GND10" gate="1" x="127" y="58.42"/>
@@ -12971,7 +12969,7 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 <instance part="GND32" gate="1" x="86.36" y="111.76"/>
 <instance part="R16" gate="G$1" x="121.92" y="63.5" rot="R180"/>
 <instance part="GND33" gate="1" x="114.3" y="58.42"/>
-<instance part="U$6" gate="G$1" x="55.88" y="15.24" rot="R90"/>
+<instance part="X2" gate="G$1" x="55.88" y="15.24" rot="R90"/>
 <instance part="R17" gate="G$1" x="48.26" y="12.7" rot="R180"/>
 <instance part="C15" gate="G$1" x="66.04" y="10.16" rot="R270"/>
 <instance part="C16" gate="G$1" x="66.04" y="20.32" rot="R270"/>
@@ -12986,26 +12984,31 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 <instance part="GND38" gate="1" x="76.2" y="233.68" rot="R270"/>
 <instance part="GND39" gate="1" x="76.2" y="236.22" rot="R270"/>
 <instance part="GND40" gate="1" x="76.2" y="238.76" rot="R270"/>
+<instance part="GND2" gate="1" x="-7.62" y="185.42"/>
+<instance part="GND7" gate="1" x="167.64" y="-38.1"/>
+<instance part="GND41" gate="1" x="33.02" y="170.18" rot="R270"/>
+<instance part="C17" gate="G$1" x="12.7" y="190.5" rot="R180"/>
+<instance part="GND42" gate="1" x="12.7" y="185.42"/>
 </instances>
 <busses>
 </busses>
 <nets>
 <net name="N$1" class="0">
 <segment>
-<pinref part="U$1" gate="G$1" pin="ANT"/>
+<pinref part="U1" gate="G$1" pin="ANT"/>
 <pinref part="X1" gate="G$1" pin="1"/>
 </segment>
 </net>
 <net name="+3V3" class="0">
 <segment>
-<pinref part="U$2" gate="G$1" pin="VDD"/>
+<pinref part="U2" gate="G$1" pin="VDD"/>
 <pinref part="+3V2" gate="G$1" pin="+3V3"/>
 <pinref part="C12" gate="G$1" pin="2"/>
 <wire x1="124.46" y1="185.42" x2="127" y2="185.42" width="0.1524" layer="91"/>
 <junction x="124.46" y="185.42"/>
 </segment>
 <segment>
-<pinref part="X2" gate="G$1" pin="VDD"/>
+<pinref part="U3" gate="G$1" pin="VDD"/>
 <pinref part="+3V3" gate="G$1" pin="+3V3"/>
 <pinref part="C13" gate="G$1" pin="2"/>
 <wire x1="132.08" y1="274.32" x2="127" y2="274.32" width="0.1524" layer="91"/>
@@ -13046,7 +13049,7 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 <junction x="-17.78" y="71.12"/>
 </segment>
 <segment>
-<pinref part="U$4" gate="G$1" pin="OUT"/>
+<pinref part="IC2" gate="G$1" pin="OUT"/>
 <pinref part="+3V5" gate="G$1" pin="+3V3"/>
 <wire x1="182.88" y1="-27.94" x2="180.34" y2="-27.94" width="0.1524" layer="91"/>
 <pinref part="C6" gate="G$1" pin="2"/>
@@ -13085,30 +13088,29 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 </net>
 <net name="3.3V" class="0">
 <segment>
-<pinref part="U$3" gate="G$1" pin="OUT"/>
-<pinref part="U$1" gate="G$1" pin="3.3V"/>
+<pinref part="IC4" gate="G$1" pin="OUT"/>
+<pinref part="U1" gate="G$1" pin="3.3V"/>
 <wire x1="0" y1="195.58" x2="7.62" y2="195.58" width="0.1524" layer="91"/>
-<wire x1="7.62" y1="195.58" x2="15.24" y2="195.58" width="0.1524" layer="91"/>
+<wire x1="7.62" y1="195.58" x2="12.7" y2="195.58" width="0.1524" layer="91"/>
+<wire x1="12.7" y1="195.58" x2="15.24" y2="195.58" width="0.1524" layer="91"/>
 <wire x1="15.24" y1="195.58" x2="15.24" y2="182.88" width="0.1524" layer="91"/>
 <pinref part="C10" gate="G$1" pin="2"/>
 <junction x="7.62" y="195.58"/>
+<pinref part="C17" gate="G$1" pin="2"/>
+<junction x="12.7" y="195.58"/>
 </segment>
 </net>
 <net name="GND" class="0">
 <segment>
-<pinref part="U$1" gate="G$1" pin="GND"/>
+<pinref part="U1" gate="G$1" pin="GND"/>
 <pinref part="GND1" gate="1" pin="GND"/>
 </segment>
 <segment>
-<pinref part="U$3" gate="G$1" pin="GND"/>
-<pinref part="GND2" gate="1" pin="GND"/>
-</segment>
-<segment>
-<pinref part="X2" gate="G$1" pin="GND"/>
+<pinref part="U3" gate="G$1" pin="GND"/>
 <pinref part="GND3" gate="1" pin="GND"/>
 </segment>
 <segment>
-<pinref part="U$2" gate="G$1" pin="VSS"/>
+<pinref part="U2" gate="G$1" pin="VSS"/>
 <pinref part="GND4" gate="1" pin="GND"/>
 </segment>
 <segment>
@@ -13141,16 +13143,11 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 <junction x="-25.4" y="58.42"/>
 </segment>
 <segment>
-<pinref part="U$4" gate="G$1" pin="GND"/>
-<pinref part="GND7" gate="1" pin="GND"/>
-<wire x1="167.64" y1="-38.1" x2="167.64" y2="-35.56" width="0.1524" layer="91"/>
-</segment>
-<segment>
 <pinref part="J1" gate="G$1" pin="-"/>
 <pinref part="GND8" gate="1" pin="GND"/>
 </segment>
 <segment>
-<pinref part="U2" gate="G$1" pin="VSS"/>
+<pinref part="IC3" gate="G$1" pin="VSS"/>
 <pinref part="GND9" gate="1" pin="GND"/>
 </segment>
 <segment>
@@ -13236,7 +13233,7 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 <pinref part="GND29" gate="1" pin="GND"/>
 </segment>
 <segment>
-<pinref part="U$2" gate="G$1" pin="K"/>
+<pinref part="U2" gate="G$1" pin="K"/>
 <pinref part="GND30" gate="1" pin="GND"/>
 </segment>
 <segment>
@@ -13262,7 +13259,7 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 <pinref part="GND35" gate="1" pin="GND"/>
 </segment>
 <segment>
-<pinref part="U$6" gate="G$1" pin="3"/>
+<pinref part="X2" gate="G$1" pin="3"/>
 <pinref part="GND36" gate="1" pin="GND"/>
 </segment>
 <segment>
@@ -13280,6 +13277,22 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 <segment>
 <pinref part="LED5" gate="G$1" pin="C"/>
 <pinref part="GND40" gate="1" pin="GND"/>
+</segment>
+<segment>
+<pinref part="IC4" gate="G$1" pin="GND"/>
+<pinref part="GND2" gate="1" pin="GND"/>
+</segment>
+<segment>
+<pinref part="IC2" gate="G$1" pin="GND"/>
+<pinref part="GND7" gate="1" pin="GND"/>
+</segment>
+<segment>
+<pinref part="X1" gate="G$1" pin="2"/>
+<pinref part="GND41" gate="1" pin="GND"/>
+</segment>
+<segment>
+<pinref part="C17" gate="G$1" pin="1"/>
+<pinref part="GND42" gate="1" pin="GND"/>
 </segment>
 </net>
 <net name="VBAT_S" class="0">
@@ -13366,14 +13379,14 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 </net>
 <net name="N$8" class="0">
 <segment>
-<pinref part="U$2" gate="G$1" pin="C1-"/>
+<pinref part="U2" gate="G$1" pin="C1-"/>
 <pinref part="C1" gate="G$1" pin="1"/>
 <wire x1="149.86" y1="170.18" x2="157.48" y2="170.18" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$9" class="0">
 <segment>
-<pinref part="U$2" gate="G$1" pin="C1+"/>
+<pinref part="U2" gate="G$1" pin="C1+"/>
 <wire x1="149.86" y1="172.72" x2="170.18" y2="172.72" width="0.1524" layer="91"/>
 <wire x1="170.18" y1="172.72" x2="170.18" y2="170.18" width="0.1524" layer="91"/>
 <pinref part="C1" gate="G$1" pin="2"/>
@@ -13413,7 +13426,7 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 <segment>
 <wire x1="86.36" y1="264.16" x2="106.68" y2="264.16" width="0.1524" layer="91"/>
 <label x="86.36" y="264.16" size="1.778" layer="95"/>
-<pinref part="X2" gate="G$1" pin="UART_RX"/>
+<pinref part="U3" gate="G$1" pin="UART_RX"/>
 </segment>
 </net>
 <net name="USART2_RX" class="0">
@@ -13424,7 +13437,7 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 </segment>
 <segment>
 <wire x1="106.68" y1="261.62" x2="86.36" y2="261.62" width="0.1524" layer="91"/>
-<pinref part="X2" gate="G$1" pin="UART_TX"/>
+<pinref part="U3" gate="G$1" pin="UART_TX"/>
 <label x="86.36" y="261.62" size="1.778" layer="95"/>
 </segment>
 </net>
@@ -13436,7 +13449,7 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 </segment>
 <segment>
 <wire x1="88.9" y1="170.18" x2="99.06" y2="170.18" width="0.1524" layer="91"/>
-<pinref part="U$2" gate="G$1" pin="SCL"/>
+<pinref part="U2" gate="G$1" pin="SCL"/>
 <label x="91.44" y="170.18" size="1.778" layer="95"/>
 <pinref part="R7" gate="G$1" pin="2"/>
 <wire x1="99.06" y1="170.18" x2="104.14" y2="170.18" width="0.1524" layer="91"/>
@@ -13452,7 +13465,7 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 </segment>
 <segment>
 <wire x1="104.14" y1="167.64" x2="101.6" y2="167.64" width="0.1524" layer="91"/>
-<pinref part="U$2" gate="G$1" pin="SDA"/>
+<pinref part="U2" gate="G$1" pin="SDA"/>
 <label x="91.44" y="167.64" size="1.778" layer="95"/>
 <pinref part="R6" gate="G$1" pin="2"/>
 <wire x1="101.6" y1="167.64" x2="88.9" y2="167.64" width="0.1524" layer="91"/>
@@ -13462,7 +13475,7 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 </net>
 <net name="MISO" class="0">
 <segment>
-<pinref part="U$1" gate="G$1" pin="MISO"/>
+<pinref part="U1" gate="G$1" pin="MISO"/>
 <wire x1="-2.54" y1="157.48" x2="-12.7" y2="157.48" width="0.1524" layer="91"/>
 <label x="-10.16" y="157.48" size="1.778" layer="95"/>
 </segment>
@@ -13475,7 +13488,7 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 <net name="MOSI" class="0">
 <segment>
 <wire x1="-12.7" y1="160.02" x2="-2.54" y2="160.02" width="0.1524" layer="91"/>
-<pinref part="U$1" gate="G$1" pin="MOSI"/>
+<pinref part="U1" gate="G$1" pin="MOSI"/>
 <label x="-10.16" y="160.02" size="1.778" layer="95"/>
 </segment>
 <segment>
@@ -13486,7 +13499,7 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 </net>
 <net name="SCLK" class="0">
 <segment>
-<pinref part="U$1" gate="G$1" pin="SCK"/>
+<pinref part="U1" gate="G$1" pin="SCK"/>
 <wire x1="-2.54" y1="162.56" x2="-12.7" y2="162.56" width="0.1524" layer="91"/>
 <label x="-10.16" y="162.56" size="1.778" layer="95"/>
 </segment>
@@ -13498,7 +13511,7 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 </net>
 <net name="NSS" class="0">
 <segment>
-<pinref part="U$1" gate="G$1" pin="NSS"/>
+<pinref part="U1" gate="G$1" pin="NSS"/>
 <wire x1="-12.7" y1="165.1" x2="-2.54" y2="165.1" width="0.1524" layer="91"/>
 <label x="-10.16" y="165.1" size="1.778" layer="95"/>
 </segment>
@@ -13540,18 +13553,18 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 </net>
 <net name="N$23" class="0">
 <segment>
-<pinref part="U$2" gate="G$1" pin="A"/>
+<pinref part="U2" gate="G$1" pin="A"/>
 <pinref part="R5" gate="G$1" pin="1"/>
 </segment>
 </net>
 <net name="P_RST" class="0">
 <segment>
-<pinref part="U$1" gate="G$1" pin="RST"/>
+<pinref part="U1" gate="G$1" pin="RST"/>
 <wire x1="-2.54" y1="172.72" x2="-12.7" y2="172.72" width="0.1524" layer="91"/>
 <label x="-12.7" y="172.72" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="U$2" gate="G$1" pin="RST"/>
+<pinref part="U2" gate="G$1" pin="RST"/>
 <wire x1="104.14" y1="172.72" x2="88.9" y2="172.72" width="0.1524" layer="91"/>
 <label x="91.44" y="172.72" size="1.778" layer="95"/>
 </segment>
@@ -13570,13 +13583,13 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 <net name="N$12" class="0">
 <segment>
 <pinref part="C14" gate="G$1" pin="1"/>
-<pinref part="U$2" gate="G$1" pin="VOUT"/>
+<pinref part="U2" gate="G$1" pin="VOUT"/>
 <wire x1="157.48" y1="175.26" x2="149.86" y2="175.26" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="WAKE" class="0">
 <segment>
-<pinref part="X2" gate="G$1" pin="WAKE_HW"/>
+<pinref part="U3" gate="G$1" pin="WAKE_HW"/>
 <wire x1="106.68" y1="254" x2="88.9" y2="254" width="0.1524" layer="91"/>
 <label x="91.44" y="254" size="1.778" layer="95"/>
 </segment>
@@ -13604,7 +13617,7 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 <label x="78.74" y="134.62" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="U2" gate="G$1" pin="VIN"/>
+<pinref part="IC3" gate="G$1" pin="VIN"/>
 <wire x1="63.5" y1="-25.4" x2="58.42" y2="-25.4" width="0.1524" layer="91"/>
 <pinref part="C9" gate="G$1" pin="2"/>
 <wire x1="58.42" y1="-25.4" x2="48.26" y2="-25.4" width="0.1524" layer="91"/>
@@ -13666,14 +13679,14 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 <wire x1="55.88" y1="17.78" x2="55.88" y2="20.32" width="0.1524" layer="91"/>
 <pinref part="C16" gate="G$1" pin="2"/>
 <wire x1="55.88" y1="20.32" x2="60.96" y2="20.32" width="0.1524" layer="91"/>
-<pinref part="U$6" gate="G$1" pin="2"/>
+<pinref part="X2" gate="G$1" pin="2"/>
 <junction x="55.88" y="17.78"/>
 </segment>
 </net>
 <net name="N$32" class="0">
 <segment>
 <pinref part="C15" gate="G$1" pin="2"/>
-<pinref part="U$6" gate="G$1" pin="1"/>
+<pinref part="X2" gate="G$1" pin="1"/>
 <wire x1="60.96" y1="10.16" x2="55.88" y2="10.16" width="0.1524" layer="91"/>
 <wire x1="55.88" y1="10.16" x2="55.88" y2="12.7" width="0.1524" layer="91"/>
 <pinref part="R17" gate="G$1" pin="1"/>
@@ -13683,7 +13696,7 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 </net>
 <net name="N$7" class="0">
 <segment>
-<pinref part="U2" gate="G$1" pin="PROG"/>
+<pinref part="IC3" gate="G$1" pin="PROG"/>
 <wire x1="83.82" y1="-27.94" x2="91.44" y2="-27.94" width="0.1524" layer="91"/>
 <wire x1="91.44" y1="-27.94" x2="91.44" y2="-33.02" width="0.1524" layer="91"/>
 <pinref part="R18" gate="G$1" pin="1"/>
@@ -13693,7 +13706,7 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 </net>
 <net name="N$29" class="0">
 <segment>
-<pinref part="U2" gate="G$1" pin="STAT"/>
+<pinref part="IC3" gate="G$1" pin="STAT"/>
 <pinref part="LED7" gate="G$1" pin="C"/>
 <wire x1="63.5" y1="-30.48" x2="53.34" y2="-30.48" width="0.1524" layer="91"/>
 </segment>
@@ -13715,7 +13728,7 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 <net name="N$33" class="0">
 <segment>
 <pinref part="J1" gate="G$1" pin="+"/>
-<pinref part="U2" gate="G$1" pin="VBAT"/>
+<pinref part="IC3" gate="G$1" pin="VBAT"/>
 <wire x1="83.82" y1="-25.4" x2="93.98" y2="-25.4" width="0.1524" layer="91"/>
 <wire x1="93.98" y1="-25.4" x2="93.98" y2="-27.94" width="0.1524" layer="91"/>
 <pinref part="C8" gate="G$1" pin="2"/>
@@ -13750,7 +13763,7 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 <pinref part="U$5" gate="G$1" pin="NC1"/>
 <wire x1="154.94" y1="-22.86" x2="157.48" y2="-22.86" width="0.1524" layer="91"/>
 <wire x1="157.48" y1="-22.86" x2="157.48" y2="-27.94" width="0.1524" layer="91"/>
-<pinref part="U$4" gate="G$1" pin="IN"/>
+<pinref part="IC2" gate="G$1" pin="IN"/>
 <wire x1="157.48" y1="-27.94" x2="160.02" y2="-27.94" width="0.1524" layer="91"/>
 <pinref part="C7" gate="G$1" pin="2"/>
 <wire x1="157.48" y1="-30.48" x2="157.48" y2="-27.94" width="0.1524" layer="91"/>
@@ -13760,7 +13773,7 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 <label x="160.02" y="-22.86" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="U$3" gate="G$1" pin="IN"/>
+<pinref part="IC4" gate="G$1" pin="IN"/>
 <wire x1="-15.24" y1="195.58" x2="-17.78" y2="195.58" width="0.1524" layer="91"/>
 <pinref part="C11" gate="G$1" pin="2"/>
 <junction x="-17.78" y="195.58"/>
@@ -13860,9 +13873,9 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 <label x="114.3" y="35.56" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="IC1" gate="G$1" pin="PB0"/>
-<wire x1="43.18" y1="73.66" x2="58.42" y2="73.66" width="0.1524" layer="91"/>
-<label x="50.8" y="73.66" size="1.778" layer="95"/>
+<pinref part="IC1" gate="G$1" pin="PA7"/>
+<wire x1="43.18" y1="101.6" x2="58.42" y2="101.6" width="0.1524" layer="91"/>
+<label x="48.26" y="101.6" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="LED4" class="0">
@@ -13879,21 +13892,21 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 </net>
 <net name="N$5" class="0">
 <segment>
-<pinref part="X2" gate="G$1" pin="PIO1/CONN"/>
+<pinref part="U3" gate="G$1" pin="PIO1/CONN"/>
 <wire x1="106.68" y1="238.76" x2="96.52" y2="238.76" width="0.1524" layer="91"/>
 <pinref part="R10" gate="G$1" pin="2"/>
 </segment>
 </net>
 <net name="N$13" class="0">
 <segment>
-<pinref part="X2" gate="G$1" pin="PIO2/EV"/>
+<pinref part="U3" gate="G$1" pin="PIO2/EV"/>
 <wire x1="106.68" y1="236.22" x2="96.52" y2="236.22" width="0.1524" layer="91"/>
 <pinref part="R11" gate="G$1" pin="2"/>
 </segment>
 </net>
 <net name="N$14" class="0">
 <segment>
-<pinref part="X2" gate="G$1" pin="PIO3/WS"/>
+<pinref part="U3" gate="G$1" pin="PIO3/WS"/>
 <wire x1="106.68" y1="233.68" x2="96.52" y2="233.68" width="0.1524" layer="91"/>
 <pinref part="R9" gate="G$1" pin="2"/>
 </segment>
@@ -13916,16 +13929,28 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 <pinref part="LED4" gate="G$1" pin="A"/>
 </segment>
 </net>
-<net name="N$18" class="0">
+<net name="WAKE_SW" class="0">
 <segment>
-<pinref part="X2" gate="G$1" pin="WAKE_SW"/>
+<pinref part="U3" gate="G$1" pin="WAKE_SW"/>
 <wire x1="106.68" y1="256.54" x2="88.9" y2="256.54" width="0.1524" layer="91"/>
+<label x="91.44" y="256.54" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="IC1" gate="G$1" pin="PB11"/>
+<wire x1="43.18" y1="45.72" x2="55.88" y2="45.72" width="0.1524" layer="91"/>
+<label x="48.26" y="45.72" size="1.778" layer="95"/>
 </segment>
 </net>
-<net name="N$19" class="0">
+<net name="CMD" class="0">
 <segment>
-<pinref part="X2" gate="G$1" pin="CMD/MLDP"/>
+<pinref part="U3" gate="G$1" pin="CMD/MLDP"/>
 <wire x1="106.68" y1="243.84" x2="88.9" y2="243.84" width="0.1524" layer="91"/>
+<label x="91.44" y="243.84" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="IC1" gate="G$1" pin="PB1"/>
+<wire x1="43.18" y1="71.12" x2="58.42" y2="71.12" width="0.1524" layer="91"/>
+<label x="50.8" y="71.12" size="1.778" layer="95"/>
 </segment>
 </net>
 </nets>

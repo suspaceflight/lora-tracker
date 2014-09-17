@@ -8739,6 +8739,7 @@ new: Attribute TP_SIGNAL_NAME&lt;br&gt;
 <part name="GND21" library="supply1" deviceset="GND" device=""/>
 <part name="C9" library="rcl" deviceset="C-EU" device="C0603"/>
 <part name="GND22" library="supply1" deviceset="GND" device=""/>
+<part name="GND23" library="supply1" deviceset="GND" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -8804,6 +8805,7 @@ new: Attribute TP_SIGNAL_NAME&lt;br&gt;
 <instance part="GND21" gate="1" x="12.7" y="20.32" rot="R270"/>
 <instance part="C9" gate="G$1" x="127" y="76.2"/>
 <instance part="GND22" gate="1" x="127" y="68.58"/>
+<instance part="GND23" gate="1" x="101.6" y="124.46" rot="R270"/>
 </instances>
 <busses>
 </busses>
@@ -8924,6 +8926,10 @@ new: Attribute TP_SIGNAL_NAME&lt;br&gt;
 <segment>
 <pinref part="C9" gate="G$1" pin="2"/>
 <pinref part="GND22" gate="1" pin="GND"/>
+</segment>
+<segment>
+<pinref part="X1" gate="G1" pin="2"/>
+<pinref part="GND23" gate="1" pin="GND"/>
 </segment>
 </net>
 <net name="N$6" class="0">
