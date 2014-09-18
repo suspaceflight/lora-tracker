@@ -12957,7 +12957,6 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <part name="R14" library="resistor" deviceset="R-EU_" device="R0603"/>
 <part name="R15" library="resistor" deviceset="R-EU_" device="R0603"/>
 <part name="GND32" library="supply1" deviceset="GND" device=""/>
-<part name="R16" library="resistor" deviceset="R-EU_" device="R0603"/>
 <part name="GND33" library="supply1" deviceset="GND" device=""/>
 <part name="X2" library="SparkFun-FreqCtrl" deviceset="CRYSTAL-GROUNDED" device=""/>
 <part name="R17" library="resistor" deviceset="R-EU_" device="R0603"/>
@@ -13096,7 +13095,6 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <instance part="R14" gate="G$1" x="86.36" y="129.54" rot="R90"/>
 <instance part="R15" gate="G$1" x="86.36" y="119.38" rot="R90"/>
 <instance part="GND32" gate="1" x="86.36" y="111.76"/>
-<instance part="R16" gate="G$1" x="121.92" y="63.5" rot="R180"/>
 <instance part="GND33" gate="1" x="114.3" y="58.42"/>
 <instance part="X2" gate="G$1" x="55.88" y="15.24" rot="R90"/>
 <instance part="R17" gate="G$1" x="48.26" y="12.7" rot="R180"/>
@@ -13380,7 +13378,6 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <pinref part="GND32" gate="1" pin="GND"/>
 </segment>
 <segment>
-<pinref part="R16" gate="G$1" pin="2"/>
 <wire x1="116.84" y1="63.5" x2="114.3" y2="63.5" width="0.1524" layer="91"/>
 <wire x1="114.3" y1="63.5" x2="114.3" y2="60.96" width="0.1524" layer="91"/>
 <pinref part="GND33" gate="1" pin="GND"/>
@@ -13809,7 +13806,6 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <net name="N$28" class="0">
 <segment>
 <pinref part="JP1" gate="G$1" pin="ID"/>
-<pinref part="R16" gate="G$1" pin="1"/>
 <wire x1="129.54" y1="63.5" x2="127" y2="63.5" width="0.1524" layer="91"/>
 </segment>
 </net>
