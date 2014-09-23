@@ -14,13 +14,13 @@
 <layer number="18" name="Vias" color="2" fill="1" visible="yes" active="yes"/>
 <layer number="19" name="Unrouted" color="6" fill="1" visible="yes" active="yes"/>
 <layer number="20" name="Dimension" color="15" fill="1" visible="yes" active="yes"/>
-<layer number="21" name="tPlace" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="22" name="bPlace" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="21" name="tPlace" color="15" fill="1" visible="yes" active="yes"/>
+<layer number="22" name="bPlace" color="15" fill="1" visible="yes" active="yes"/>
 <layer number="23" name="tOrigins" color="15" fill="1" visible="yes" active="yes"/>
 <layer number="24" name="bOrigins" color="15" fill="1" visible="yes" active="yes"/>
-<layer number="25" name="tNames" color="7" fill="1" visible="no" active="yes"/>
+<layer number="25" name="tNames" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="26" name="bNames" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="27" name="tValues" color="7" fill="1" visible="no" active="yes"/>
+<layer number="27" name="tValues" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="28" name="bValues" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="29" name="tStop" color="7" fill="3" visible="no" active="yes"/>
 <layer number="30" name="bStop" color="7" fill="6" visible="no" active="yes"/>
@@ -44,7 +44,7 @@
 <layer number="48" name="Document" color="7" fill="1" visible="no" active="yes"/>
 <layer number="49" name="Reference" color="7" fill="1" visible="no" active="yes"/>
 <layer number="50" name="dxf" color="7" fill="1" visible="no" active="no"/>
-<layer number="51" name="tDocu" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="51" name="tDocu" color="7" fill="1" visible="no" active="yes"/>
 <layer number="52" name="bDocu" color="7" fill="1" visible="no" active="yes"/>
 <layer number="53" name="tPadExt" color="7" fill="1" visible="no" active="no"/>
 <layer number="54" name="bPadExt" color="1" fill="1" visible="no" active="no"/>
@@ -2215,7 +2215,7 @@ design rules under a new name.</description>
 <element name="IC1" library="dtb" package="TQFP48" value="STM32F0" x="50.8" y="24.765" smashed="yes" rot="MR90">
 <attribute name="NAME" x="56.007" y="21.971" size="1.016" layer="26" font="vector" ratio="13" rot="MR90"/>
 </element>
-<element name="SW1" library="SparkFun-Electromechanical" package="ROTARY_ENC_PLAIN" value="ROTARTY_ENCODER" x="55.245" y="10.16" rot="R270"/>
+<element name="SW1" library="SparkFun-Electromechanical" package="ROTARY_ENC_PLAIN" value="ROTARTY_ENCODER" x="55.245" y="10.16" smashed="yes" rot="R270"/>
 <element name="JP1" library="SparkFun-Connectors" package="USB-B-MICRO-SMD_V03" value="USB_MICROB_PLUGCONN-11752" x="70.612" y="22.86" smashed="yes" rot="MR0">
 <attribute name="PROD_ID" value="CONN-11752" x="49.022" y="-17.78" size="1.778" layer="28" rot="MR0" display="off"/>
 <attribute name="NAME" x="71.882" y="28.829" size="1.016" layer="26" font="vector" ratio="13" rot="MR0"/>
@@ -2225,17 +2225,23 @@ design rules under a new name.</description>
 <attribute name="NAME" x="60.325" y="42.926" size="1.016" layer="26" font="vector" ratio="13" rot="MR0"/>
 <attribute name="VALUE" x="60.325" y="41.656" size="0.4064" layer="28" rot="MR0"/>
 </element>
-<element name="X1" library="con-coax" package="BU-SMA-V" value="BU-SMA-V" x="3.81" y="32.258">
+<element name="X1" library="con-coax" package="BU-SMA-V" value="BU-SMA-V" x="3.81" y="32.258" smashed="yes">
 <attribute name="OC_NEWARK" value="unknown" x="3.81" y="32.258" size="1.778" layer="27" display="off"/>
 <attribute name="MPN" value="" x="3.81" y="32.258" size="1.778" layer="27" display="off"/>
 <attribute name="MF" value="" x="3.81" y="32.258" size="1.778" layer="27" display="off"/>
 <attribute name="OC_FARNELL" value="unknown" x="3.81" y="32.258" size="1.778" layer="27" display="off"/>
+<attribute name="NAME" x="1.27" y="36.703" size="1.27" layer="25"/>
+<attribute name="VALUE" x="0.635" y="26.543" size="1.27" layer="27"/>
 </element>
 <element name="U2" library="dtb" package="NHD-C0216CIZ-FSW" value="NHD-C0216CIZ-FSW" x="8.89" y="17.78"/>
-<element name="S2" library="Mine" package="TACTILE-PTH" value="SWITCH-MOMENTARY-2PTH" x="41.91" y="7.62" rot="R270"/>
-<element name="S3" library="Mine" package="TACTILE-PTH" value="SWITCH-MOMENTARY-2PTH" x="30.48" y="7.62" rot="R270"/>
-<element name="LED2" library="led" package="LED3MM" value="" x="30.48" y="13.97"/>
-<element name="LED3" library="led" package="LED3MM" value="" x="41.91" y="13.97"/>
+<element name="S2" library="Mine" package="TACTILE-PTH" value="SWITCH-MOMENTARY-2PTH" x="41.91" y="7.62" smashed="yes" rot="R270"/>
+<element name="S3" library="Mine" package="TACTILE-PTH" value="SWITCH-MOMENTARY-2PTH" x="30.48" y="7.62" smashed="yes" rot="R270"/>
+<element name="LED2" library="led" package="LED3MM" value="" x="30.48" y="13.97" smashed="yes">
+<attribute name="VALUE" x="32.385" y="12.319" size="1.27" layer="27" ratio="10"/>
+</element>
+<element name="LED3" library="led" package="LED3MM" value="" x="41.91" y="13.97" smashed="yes">
+<attribute name="VALUE" x="43.815" y="12.319" size="1.27" layer="27" ratio="10"/>
+</element>
 <element name="H2" library="Mounting" package="3,0" value="MOUNT-HOLE3.0" x="3.81" y="40.64"/>
 <element name="H3" library="Mounting" package="3,0" value="MOUNT-HOLE3.0" x="3.81" y="3.81"/>
 <element name="H4" library="Mounting" package="3,0" value="MOUNT-HOLE3.0" x="68.58" y="40.64"/>
@@ -2250,7 +2256,7 @@ design rules under a new name.</description>
 <element name="IC2" library="dtb" package="SOT23" value="MCP1700TT" x="43.053" y="40.005" smashed="yes" rot="MR180">
 <attribute name="NAME" x="45.085" y="40.005" size="1.016" layer="26" font="vector" ratio="13" rot="MR270"/>
 </element>
-<element name="U$5" library="Mine" package="DPDTSLIDE" value="DPDTSLIDE" x="70.485" y="31.4325" rot="R90"/>
+<element name="U$5" library="Mine" package="DPDTSLIDE" value="DPDTSLIDE" x="70.485" y="31.4325" smashed="yes" rot="R90"/>
 <element name="U3" library="Mine" package="RN4020" value="RN4020" x="38.735" y="30.099" smashed="yes" rot="MR0"/>
 <element name="J2" library="dtb" package="SWD_PTH_SHROUD" value="SWD_PTH_SHROUD" x="69.469" y="13.208" smashed="yes" rot="MR90"/>
 <element name="R1" library="resistor" package="R0603" value="" x="65.278" y="10.795" smashed="yes" rot="MR90">
@@ -2282,7 +2288,7 @@ design rules under a new name.</description>
 <attribute name="VALUE" x="27.559" y="41.402" size="1.27" layer="28" rot="MR270"/>
 </element>
 <element name="C7" library="resistor" package="C0603" value="" x="42.418" y="37.084" smashed="yes" rot="MR180">
-<attribute name="NAME" x="41.529" y="36.322" size="1.016" layer="25" font="vector" ratio="13" rot="R180"/>
+<attribute name="NAME" x="41.529" y="38.862" size="1.016" layer="26" font="vector" ratio="13" rot="MR180"/>
 <attribute name="VALUE" x="41.529" y="39.116" size="1.27" layer="28" rot="MR180"/>
 </element>
 <element name="C8" library="resistor" package="C0603" value="4u7" x="46.99" y="40.513" smashed="yes" rot="MR90">
@@ -2305,7 +2311,9 @@ design rules under a new name.</description>
 <attribute name="NAME" x="40.894" y="44.704" size="1.016" layer="26" font="vector" ratio="13" rot="MR180"/>
 </element>
 <element name="JP2" library="SparkFun-Connectors" package="1X06-SMD" value="" x="16.51" y="36.83" smashed="yes" rot="MR180"/>
-<element name="LED1" library="led" package="LED5MM" value="" x="21.59" y="13.97"/>
+<element name="LED1" library="led" package="LED5MM" value="" x="21.59" y="13.97" smashed="yes">
+<attribute name="VALUE" x="24.7904" y="12.1666" size="1.27" layer="27" ratio="10"/>
+</element>
 <element name="R2" library="resistor" package="R0603" value="" x="46.99" y="14.605" smashed="yes" rot="MR0">
 <attribute name="NAME" x="48.641" y="14.986" size="1.016" layer="26" font="vector" ratio="13" rot="MR180"/>
 <attribute name="VALUE" x="47.879" y="12.573" size="1.27" layer="28" rot="MR0"/>
@@ -2338,9 +2346,15 @@ design rules under a new name.</description>
 <attribute name="NAME" x="38.227" y="13.462" size="1.016" layer="26" font="vector" ratio="13" rot="MR270"/>
 <attribute name="VALUE" x="35.814" y="14.097" size="1.27" layer="28" rot="MR90"/>
 </element>
-<element name="LED4" library="led" package="CHIP-LED0805" value="" x="21.59" y="6.731" rot="R90"/>
-<element name="LED5" library="led" package="CHIP-LED0805" value="" x="21.59" y="1.651" rot="R90"/>
-<element name="LED6" library="led" package="CHIP-LED0805" value="" x="21.59" y="4.191" rot="R90"/>
+<element name="LED4" library="led" package="CHIP-LED0805" value="" x="21.59" y="6.731" smashed="yes" rot="R90">
+<attribute name="VALUE" x="22.86" y="9.271" size="1.27" layer="27" rot="R180"/>
+</element>
+<element name="LED5" library="led" package="CHIP-LED0805" value="" x="21.59" y="1.651" smashed="yes" rot="R90">
+<attribute name="VALUE" x="22.86" y="4.191" size="1.27" layer="27" rot="R180"/>
+</element>
+<element name="LED6" library="led" package="CHIP-LED0805" value="" x="21.59" y="4.191" smashed="yes" rot="R90">
+<attribute name="VALUE" x="22.86" y="6.731" size="1.27" layer="27" rot="R180"/>
+</element>
 <element name="LED7" library="led" package="CHIP-LED0805" value="" x="50.419" y="44.069" rot="R90"/>
 <element name="R8" library="resistor" package="R0603" value="" x="53.34" y="42.545" smashed="yes" rot="MR90">
 <attribute name="NAME" x="51.435" y="42.164" size="1.016" layer="26" font="vector" ratio="13" rot="MR90"/>
