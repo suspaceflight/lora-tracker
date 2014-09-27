@@ -446,17 +446,6 @@
 <wire x1="11.5" y1="1.85" x2="11.5" y2="0" width="0.127" layer="21"/>
 <wire x1="9.35" y1="0" x2="11.5" y2="0" width="0.127" layer="21"/>
 </package>
-<package name="TSOP6">
-<smd name="1" x="0" y="0.5" dx="0.6" dy="0.95" layer="1"/>
-<smd name="2" x="0.95" y="0.5" dx="0.6" dy="0.95" layer="1"/>
-<smd name="3" x="1.9" y="0.5" dx="0.6" dy="0.95" layer="1"/>
-<smd name="6" x="0" y="2.7" dx="0.6" dy="0.95" layer="1"/>
-<smd name="5" x="0.95" y="2.7" dx="0.6" dy="0.95" layer="1"/>
-<smd name="4" x="1.9" y="2.7" dx="0.6" dy="0.95" layer="1"/>
-<circle x="-1" y="0.5" radius="0.15" width="0.254" layer="21"/>
-<wire x1="2.45" y1="2.8" x2="2.45" y2="0.4" width="0.254" layer="21"/>
-<wire x1="-0.55" y1="2.8" x2="-0.55" y2="0.4" width="0.254" layer="21"/>
-</package>
 </packages>
 <symbols>
 <symbol name="RFM98">
@@ -535,18 +524,6 @@
 <wire x1="-10.16" y1="-40.64" x2="-10.16" y2="15.24" width="0.254" layer="94"/>
 <text x="-10.16" y="15.24" size="1.778" layer="95">&gt;NAME</text>
 <text x="-10.16" y="-43.18" size="1.778" layer="96">&gt;VALUE</text>
-</symbol>
-<symbol name="NUP2114">
-<pin name="VP" x="0" y="15.24" length="middle" rot="R270"/>
-<pin name="VN" x="0" y="-15.24" length="middle" rot="R90"/>
-<pin name="IO1" x="-10.16" y="2.54" length="middle"/>
-<pin name="IO2" x="-10.16" y="-2.54" length="middle"/>
-<wire x1="-5.08" y1="10.16" x2="5.08" y2="10.16" width="0.254" layer="94"/>
-<wire x1="5.08" y1="10.16" x2="5.08" y2="-10.16" width="0.254" layer="94"/>
-<wire x1="5.08" y1="-10.16" x2="-5.08" y2="-10.16" width="0.254" layer="94"/>
-<wire x1="-5.08" y1="-10.16" x2="-5.08" y2="10.16" width="0.254" layer="94"/>
-<text x="0" y="10.16" size="1.778" layer="95">&gt;NAME</text>
-<text x="0" y="-12.7" size="1.778" layer="95">&gt;VALUE</text>
 </symbol>
 </symbols>
 <devicesets>
@@ -732,24 +709,6 @@
 <connect gate="G$1" pin="VDD" pad="23"/>
 <connect gate="G$1" pin="WAKE_HW" pad="15"/>
 <connect gate="G$1" pin="WAKE_SW" pad="7"/>
-</connects>
-<technologies>
-<technology name=""/>
-</technologies>
-</device>
-</devices>
-</deviceset>
-<deviceset name="NUP2114UCMR6T1G">
-<gates>
-<gate name="G$1" symbol="NUP2114" x="-2.54" y="2.54"/>
-</gates>
-<devices>
-<device name="" package="TSOP6">
-<connects>
-<connect gate="G$1" pin="IO1" pad="1"/>
-<connect gate="G$1" pin="IO2" pad="6"/>
-<connect gate="G$1" pin="VN" pad="2"/>
-<connect gate="G$1" pin="VP" pad="5"/>
 </connects>
 <technologies>
 <technology name=""/>
@@ -12762,6 +12721,65 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 </deviceset>
 </devicesets>
 </library>
+<library name="SparkFun-DiscreteSemi">
+<description>&lt;h3&gt;SparkFun Electronics' preferred foot prints&lt;/h3&gt;
+In this library you'll find discrete semiconductors- transistors, diodes, TRIACs, optoisolators, etc.&lt;br&gt;&lt;br&gt;
+We've spent an enormous amount of time creating and checking these footprints and parts, but it is the end user's responsibility to ensure correctness and suitablity for a given componet or application. If you enjoy using this library, please buy one of our products at www.sparkfun.com.
+&lt;br&gt;&lt;br&gt;
+&lt;b&gt;Licensing:&lt;/b&gt; CC v3.0 Share-Alike You are welcome to use this library for commercial purposes. For attribution, we ask that when you begin to sell your device using our footprint, you email us with a link to the product being sold. We want bragging rights that we helped (in a very small part) to create your 8th world wonder. We would like the opportunity to feature your device on our homepage.</description>
+<packages>
+<package name="SOD-523">
+<smd name="C" x="0.55" y="0" dx="0.8" dy="0.6" layer="1"/>
+<smd name="A" x="-0.55" y="0" dx="0.8" dy="0.6" layer="1"/>
+<wire x1="-0.6" y1="-0.4" x2="0.4" y2="-0.4" width="0.127" layer="21"/>
+<wire x1="0.4" y1="-0.4" x2="0.6" y2="-0.4" width="0.127" layer="21"/>
+<wire x1="0.6" y1="0.4" x2="0.4" y2="0.4" width="0.127" layer="21"/>
+<wire x1="0.4" y1="0.4" x2="-0.6" y2="0.4" width="0.127" layer="21"/>
+<wire x1="0.6" y1="0.4" x2="0.4" y2="0.6" width="0.127" layer="21"/>
+<wire x1="0.6" y1="-0.4" x2="0.4" y2="-0.6" width="0.127" layer="21"/>
+<wire x1="0.4" y1="-0.6" x2="0.4" y2="-0.4" width="0.127" layer="21"/>
+<wire x1="0.4" y1="0.6" x2="0.4" y2="0.4" width="0.127" layer="21"/>
+</package>
+</packages>
+<symbols>
+<symbol name="DIODE-SCHOTTKY">
+<wire x1="-1.27" y1="-1.27" x2="1.27" y2="0" width="0.254" layer="94"/>
+<wire x1="1.27" y1="0" x2="-1.27" y2="1.27" width="0.254" layer="94"/>
+<wire x1="1.27" y1="1.27" x2="1.27" y2="0" width="0.254" layer="94"/>
+<wire x1="-1.27" y1="1.27" x2="-1.27" y2="-1.27" width="0.254" layer="94"/>
+<wire x1="1.27" y1="0" x2="1.27" y2="-1.27" width="0.254" layer="94"/>
+<wire x1="1.27" y1="1.27" x2="1.778" y2="1.524" width="0.254" layer="94"/>
+<wire x1="1.27" y1="-1.27" x2="0.762" y2="-1.524" width="0.254" layer="94"/>
+<text x="2.54" y="0.4826" size="1.778" layer="95">&gt;NAME</text>
+<text x="2.54" y="-2.3114" size="1.778" layer="96">&gt;VALUE</text>
+<pin name="A" x="-2.54" y="0" visible="off" length="short" direction="pas"/>
+<pin name="C" x="2.54" y="0" visible="off" length="short" direction="pas" rot="R180"/>
+</symbol>
+</symbols>
+<devicesets>
+<deviceset name="RB751" prefix="D" uservalue="yes">
+<description>40V 120mA SOD-523 Schottky&lt;br&gt;
+DIO-11018</description>
+<gates>
+<gate name="G$1" symbol="DIODE-SCHOTTKY" x="0" y="0"/>
+</gates>
+<devices>
+<device name="" package="SOD-523">
+<connects>
+<connect gate="G$1" pin="A" pad="A"/>
+<connect gate="G$1" pin="C" pad="C"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="PROD_ID" value="DIO-11018"/>
+<attribute name="VALUE" value="RB751" constant="no"/>
+</technology>
+</technologies>
+</device>
+</devices>
+</deviceset>
+</devicesets>
+</library>
 </libraries>
 <attributes>
 </attributes>
@@ -12893,8 +12911,12 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 <part name="GND41" library="supply1" deviceset="GND" device=""/>
 <part name="C11" library="resistor" deviceset="C-EU" device="C0603" value="100n"/>
 <part name="GND42" library="supply1" deviceset="GND" device=""/>
-<part name="U$3" library="Mine" deviceset="NUP2114UCMR6T1G" device=""/>
-<part name="GND43" library="supply1" deviceset="GND" device=""/>
+<part name="GND44" library="supply1" deviceset="GND" device=""/>
+<part name="GND45" library="supply1" deviceset="GND" device=""/>
+<part name="D2" library="SparkFun-DiscreteSemi" deviceset="RB751" device="" value="RB751"/>
+<part name="D3" library="SparkFun-DiscreteSemi" deviceset="RB751" device="" value="RB751"/>
+<part name="D4" library="SparkFun-DiscreteSemi" deviceset="RB751" device="" value="RB751"/>
+<part name="GND46" library="supply1" deviceset="GND" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -13030,8 +13052,12 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 <instance part="GND41" gate="1" x="33.02" y="170.18" rot="R270"/>
 <instance part="C11" gate="G$1" x="12.7" y="190.5" rot="R180"/>
 <instance part="GND42" gate="1" x="12.7" y="185.42"/>
-<instance part="U$3" gate="G$1" x="167.64" y="73.66"/>
-<instance part="GND43" gate="1" x="167.64" y="55.88"/>
+<instance part="GND44" gate="1" x="137.16" y="81.28"/>
+<instance part="GND45" gate="1" x="149.86" y="60.96"/>
+<instance part="D2" gate="G$1" x="154.94" y="66.04" rot="R90"/>
+<instance part="D3" gate="G$1" x="149.86" y="66.04" rot="R90"/>
+<instance part="D4" gate="G$1" x="137.16" y="86.36" rot="R90"/>
+<instance part="GND46" gate="1" x="154.94" y="60.96"/>
 </instances>
 <busses>
 </busses>
@@ -13337,8 +13363,16 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 <pinref part="GND42" gate="1" pin="GND"/>
 </segment>
 <segment>
-<pinref part="U$3" gate="G$1" pin="VN"/>
-<pinref part="GND43" gate="1" pin="GND"/>
+<pinref part="D4" gate="G$1" pin="A"/>
+<pinref part="GND44" gate="1" pin="GND"/>
+</segment>
+<segment>
+<pinref part="D3" gate="G$1" pin="A"/>
+<pinref part="GND45" gate="1" pin="GND"/>
+</segment>
+<segment>
+<pinref part="D2" gate="G$1" pin="A"/>
+<pinref part="GND46" gate="1" pin="GND"/>
 </segment>
 </net>
 <net name="VBAT_S" class="0">
@@ -13366,8 +13400,9 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 </segment>
 <segment>
 <label x="147.32" y="76.2" size="1.778" layer="95"/>
-<pinref part="U$3" gate="G$1" pin="IO1"/>
-<wire x1="157.48" y1="76.2" x2="142.24" y2="76.2" width="0.1524" layer="91"/>
+<wire x1="154.94" y1="76.2" x2="142.24" y2="76.2" width="0.1524" layer="91"/>
+<wire x1="154.94" y1="68.58" x2="154.94" y2="76.2" width="0.1524" layer="91"/>
+<pinref part="D2" gate="G$1" pin="C"/>
 </segment>
 </net>
 <net name="DP" class="0">
@@ -13382,9 +13417,10 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 <label x="119.38" y="66.04" size="1.778" layer="95"/>
 </segment>
 <segment>
-<wire x1="157.48" y1="71.12" x2="142.24" y2="71.12" width="0.1524" layer="91"/>
 <label x="147.32" y="71.12" size="1.778" layer="95"/>
-<pinref part="U$3" gate="G$1" pin="IO2"/>
+<wire x1="149.86" y1="71.12" x2="142.24" y2="71.12" width="0.1524" layer="91"/>
+<wire x1="149.86" y1="68.58" x2="149.86" y2="71.12" width="0.1524" layer="91"/>
+<pinref part="D3" gate="G$1" pin="C"/>
 </segment>
 </net>
 <net name="SWDAT" class="0">
@@ -13775,13 +13811,12 @@ SDR0403-560KL - 56uH, 10%, 500mA RMS/740mA peak</description>
 </net>
 <net name="N$35" class="0">
 <segment>
-<label x="149.86" y="88.9" size="1.778" layer="95"/>
-<pinref part="U$3" gate="G$1" pin="VP"/>
-<wire x1="129.54" y1="88.9" x2="167.64" y2="88.9" width="0.1524" layer="91"/>
 <pinref part="L1" gate="G$1" pin="2"/>
 <pinref part="JP1" gate="G$1" pin="VCC"/>
+<wire x1="129.54" y1="88.9" x2="137.16" y2="88.9" width="0.1524" layer="91"/>
 <wire x1="121.92" y1="71.12" x2="129.54" y2="71.12" width="0.1524" layer="91"/>
 <wire x1="129.54" y1="88.9" x2="129.54" y2="71.12" width="0.1524" layer="91"/>
+<pinref part="D4" gate="G$1" pin="C"/>
 </segment>
 </net>
 <net name="N$33" class="0">
