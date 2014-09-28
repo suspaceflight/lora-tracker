@@ -8639,13 +8639,6 @@ new: Attribute TP_SIGNAL_NAME&lt;br&gt;
 <label x="78.74" y="30.48" size="1.778" layer="95"/>
 </segment>
 </net>
-<net name="GPIO2" class="0">
-<segment>
-<label x="81.28" y="-20.32" size="1.778" layer="95"/>
-<wire x1="73.66" y1="-20.32" x2="86.36" y2="-20.32" width="0.1524" layer="91"/>
-<pinref part="IC1" gate="G$1" pin="PF0"/>
-</segment>
-</net>
 <net name="NSS" class="0">
 <segment>
 <pinref part="IC1" gate="G$1" pin="PA4"/>
@@ -8713,6 +8706,18 @@ new: Attribute TP_SIGNAL_NAME&lt;br&gt;
 <wire x1="147.32" y1="-7.62" x2="147.32" y2="-5.08" width="0.1524" layer="91"/>
 <pinref part="L2" gate="G$1" pin="1"/>
 <junction x="154.94" y="-7.62"/>
+</segment>
+</net>
+<net name="CLK" class="0">
+<segment>
+<pinref part="X3" gate="G$1" pin="DIO5"/>
+<wire x1="104.14" y1="106.68" x2="111.76" y2="106.68" width="0.1524" layer="91"/>
+<label x="109.22" y="106.68" size="1.778" layer="95"/>
+</segment>
+<segment>
+<label x="81.28" y="-20.32" size="1.778" layer="95"/>
+<wire x1="73.66" y1="-20.32" x2="86.36" y2="-20.32" width="0.1524" layer="91"/>
+<pinref part="IC1" gate="G$1" pin="PF0"/>
 </segment>
 </net>
 </nets>
