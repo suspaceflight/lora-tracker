@@ -9836,6 +9836,11 @@ Standard 10-pin dual row 0.1" header. Commonly used with AVR-ISP. Use with Spark
 <wire x1="73.66" y1="-20.32" x2="86.36" y2="-20.32" width="0.1524" layer="91"/>
 <pinref part="IC1" gate="G$1" pin="PF0"/>
 </segment>
+<segment>
+<pinref part="X3" gate="G$1" pin="DIO5"/>
+<wire x1="104.14" y1="106.68" x2="111.76" y2="106.68" width="0.1524" layer="91"/>
+<label x="109.22" y="106.68" size="1.778" layer="95"/>
+</segment>
 </net>
 <net name="NSS" class="0">
 <segment>
@@ -9930,6 +9935,12 @@ Standard 10-pin dual row 0.1" header. Commonly used with AVR-ISP. Use with Spark
 <pinref part="S1" gate="G$1" pin="2"/>
 <wire x1="109.22" y1="-30.48" x2="101.6" y2="-30.48" width="0.1524" layer="91"/>
 <junction x="109.22" y="-30.48"/>
+</segment>
+</net>
+<net name="N$10" class="0">
+<segment>
+<pinref part="X3" gate="G$1" pin="RST"/>
+<wire x1="66.04" y1="127" x2="48.26" y2="127" width="0.1524" layer="91"/>
 </segment>
 </net>
 </nets>
