@@ -1,0 +1,3 @@
+[submodule "firmware-tracker/libopencm3"]
+	path = firmware-tracker/libopencm3
+	url = https://github.com/libopencm3/libopencm3.git
