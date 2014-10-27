@@ -145,6 +145,7 @@
 <wire x1="6.35" y1="35.306" x2="6.604" y2="35.052" width="0.1778" layer="21"/>
 <wire x1="6.604" y1="35.052" x2="8.636" y2="35.052" width="0.1778" layer="21"/>
 <wire x1="8.636" y1="35.052" x2="8.89" y2="34.798" width="0.1778" layer="21"/>
+<text x="18.288" y="27.178" size="1.27" layer="22" rot="MR0">©</text>
 </plain>
 <libraries>
 <library name="dtb">

@@ -160,6 +160,7 @@
 <text x="23.876" y="45.466" size="1.4224" layer="21" font="vector" ratio="14" rot="R90">-</text>
 <text x="27.178" y="41.656" size="1.4224" layer="22" font="vector" ratio="14" rot="MR0">+</text>
 <text x="26.162" y="45.466" size="1.4224" layer="22" font="vector" ratio="14" rot="MR90">-</text>
+<text x="25.654" y="10.668" size="1.27" layer="22" rot="MR0">©</text>
 </plain>
 <libraries>
 <library name="Ava">

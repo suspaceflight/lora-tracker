@@ -13528,20 +13528,20 @@ Source: RS Component / Phycomp</description>
 <part name="GND11" library="supply1" deviceset="GND" device=""/>
 <part name="GND12" library="supply1" deviceset="GND" device=""/>
 <part name="GND13" library="supply1" deviceset="GND" device=""/>
-<part name="R1" library="resistor" deviceset="R-EU_" device="R0603" value="10k"/>
+<part name="R1" library="resistor" deviceset="R-EU_" device="R0603"/>
 <part name="GND14" library="supply1" deviceset="GND" device=""/>
-<part name="C1" library="resistor" deviceset="C-EU" device="C0603" value="1u"/>
-<part name="C9" library="resistor" deviceset="C-EU" device="C0603" value="1u"/>
-<part name="C12" library="resistor" deviceset="C-EU" device="C0603" value="100n"/>
-<part name="C5" library="resistor" deviceset="C-EU" device="C0603" value="100n"/>
-<part name="C2" library="resistor" deviceset="C-EU" device="C0603" value="4u7"/>
-<part name="C15" library="resistor" deviceset="C-EU" device="C0603" value="1u"/>
-<part name="C13" library="resistor" deviceset="C-EU" device="C0603" value="1u"/>
+<part name="C1" library="resistor" deviceset="C-EU" device="C0603"/>
+<part name="C9" library="resistor" deviceset="C-EU" device="C0603"/>
+<part name="C12" library="resistor" deviceset="C-EU" device="C0603"/>
+<part name="C5" library="resistor" deviceset="C-EU" device="C0603"/>
+<part name="C2" library="resistor" deviceset="C-EU" device="C0603"/>
+<part name="C15" library="resistor" deviceset="C-EU" device="C0603"/>
+<part name="C13" library="resistor" deviceset="C-EU" device="C0603"/>
 <part name="C14" library="resistor" deviceset="C-EU" device="C0603" value="4u7"/>
 <part name="C16" library="resistor" deviceset="C-EU" device="C0603" value="4u7"/>
 <part name="C7" library="resistor" deviceset="C-EU" device="C0603" value="4u7"/>
 <part name="C8" library="resistor" deviceset="C-EU" device="C0603" value="4u7"/>
-<part name="C3" library="resistor" deviceset="C-EU" device="C0603" value="1u"/>
+<part name="C3" library="resistor" deviceset="C-EU" device="C0603"/>
 <part name="C17" library="resistor" deviceset="C-EU" device="C0603" value="4u7"/>
 <part name="GND15" library="supply1" deviceset="GND" device=""/>
 <part name="GND16" library="supply1" deviceset="GND" device=""/>
@@ -13564,10 +13564,10 @@ Source: RS Component / Phycomp</description>
 <part name="R13" library="resistor" deviceset="R-EU_" device="R0603" value="22"/>
 <part name="S3" library="Mine" deviceset="SWITCH-MOMENTARY-2" device="SMD"/>
 <part name="+3V9" library="supply1" deviceset="+3V3" device=""/>
-<part name="Q1" library="transistor-small-signal" deviceset="BSS84" device="" value="NX2301"/>
+<part name="Q1" library="transistor-small-signal" deviceset="BSS84" device=""/>
 <part name="GND30" library="supply1" deviceset="GND" device=""/>
 <part name="+3V8" library="supply1" deviceset="+3V3" device=""/>
-<part name="C4" library="resistor" deviceset="C-EU" device="C0603" value="1u"/>
+<part name="C4" library="resistor" deviceset="C-EU" device="C0603"/>
 <part name="+3V10" library="supply1" deviceset="+3V3" device=""/>
 <part name="R5" library="resistor" deviceset="R-EU_" device="R0603" value="4k7"/>
 <part name="R4" library="resistor" deviceset="R-EU_" device="R0603" value="4k7"/>
@@ -13577,17 +13577,17 @@ Source: RS Component / Phycomp</description>
 <part name="LED7" library="led" deviceset="LED" device="CHIP-LED0805"/>
 <part name="LED6" library="led" deviceset="LED" device="CHIP-LED0805"/>
 <part name="LED1" library="led" deviceset="LED" device="CHIP-LED0805"/>
-<part name="R17" library="resistor" deviceset="R-EU_" device="R0603" value="470"/>
+<part name="R17" library="resistor" deviceset="R-EU_" device="R0603"/>
 <part name="GND31" library="supply1" deviceset="GND" device=""/>
 <part name="GND32" library="supply1" deviceset="GND" device=""/>
 <part name="X2" library="SparkFun-FreqCtrl" deviceset="CRYSTAL-GROUNDED" device=""/>
-<part name="R10" library="resistor" deviceset="R-EU_" device="R0603" value="470"/>
-<part name="C10" library="resistor" deviceset="C-EU" device="C0603" value="27p"/>
-<part name="C6" library="resistor" deviceset="C-EU" device="C0603" value="27p"/>
+<part name="R10" library="resistor" deviceset="R-EU_" device="R0603"/>
+<part name="C10" library="resistor" deviceset="C-EU" device="C0603"/>
+<part name="C6" library="resistor" deviceset="C-EU" device="C0603"/>
 <part name="GND34" library="supply1" deviceset="GND" device=""/>
 <part name="GND35" library="supply1" deviceset="GND" device=""/>
 <part name="GND36" library="supply1" deviceset="GND" device=""/>
-<part name="R16" library="resistor" deviceset="R-EU_" device="R0603" value="4k7"/>
+<part name="R16" library="resistor" deviceset="R-EU_" device="R0603"/>
 <part name="GND37" library="supply1" deviceset="GND" device=""/>
 <part name="L1" library="SparkFun-Passives" deviceset="INDUCTOR" device="0603"/>
 <part name="D1" library="dtb" deviceset="DIODE-" device="SOD323-R" value="BAT760"/>
@@ -13615,8 +13615,18 @@ Source: RS Component / Phycomp</description>
 <sheet>
 <plain>
 <text x="129.54" y="30.48" size="1.778" layer="91">actually bicolour</text>
+<text x="78.74" y="172.72" size="1.778" layer="91">connect&gt;</text>
+<text x="-25.4" y="165.1" size="1.778" layer="91">connect&gt;</text>
+<text x="-27.94" y="172.72" size="1.778" layer="91">connect&gt;</text>
 <text x="88.9" y="154.94" size="1.778" layer="91">nx2301</text>
 <text x="116.84" y="73.66" size="1.778" layer="91" rot="R180">ESD!</text>
+<text x="-30.48" y="175.26" size="1.778" layer="91">check can connect both </text>
+<text x="71.12" y="175.26" size="1.778" layer="91">check can connect both </text>
+<text x="-53.34" y="-55.88" size="2.54" layer="97" ratio="15">Copyright 2014 Matt Brejza</text>
+<wire x1="-55.88" y1="-60.96" x2="-55.88" y2="292.1" width="0.4064" layer="97"/>
+<wire x1="-55.88" y1="292.1" x2="190.5" y2="292.1" width="0.4064" layer="97"/>
+<wire x1="190.5" y1="292.1" x2="190.5" y2="-60.96" width="0.4064" layer="97"/>
+<wire x1="190.5" y1="-60.96" x2="-55.88" y2="-60.96" width="0.4064" layer="97"/>
 </plain>
 <instances>
 <instance part="U2" gate="G$1" x="12.7" y="162.56"/>
