@@ -1,3 +1,9 @@
 [submodule "firmware-tracker/libopencm3"]
 	path = firmware-tracker/libopencm3
 	url = https://github.com/libopencm3/libopencm3.git
+[submodule "firmware-basestation/libopencm3"]
+	path = firmware-basestation/libopencm3
+	url = https://github.com/BuFran/libopencm3.git
+[submodule "firmware-basestation/libopencm3-usb"]
+	path = firmware-basestation/libopencm3-usb
+	url = https://github.com/BuFran/libopencm3.git
