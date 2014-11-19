@@ -6,12 +6,60 @@
 
 #include "radio.h"
 
+char *rtty_current_byte;
+uint16_t rtty_bit_counter_mask;
+uint8_t rtty_byte_oversample;
+
+
+static void radio_write_reg_start(uint8_t reg);
+static void radio_write_reg_continuing(uint8_t data);
+static void radio_write_reg_end(void);
+static void radio_rtty_write_bits(uint8_t max_fifo_write);
+
 inline uint16_t min(uint16_t in1, uint16_t in2)
 {
 	if (in1 > in2)
 		return in2;
 	else
 		return in1;
+}
+
+
+
+void radio_write_fsk_config(radio_fsk_settings_t *s)
+{
+	uint8_t mode = radio_read_single_reg(REG_OP_MODE);
+	mode |= (1<<3); //set LF range
+
+
+	radio_write_single_reg(REG_OP_MODE,(mode & ~(uint8_t)7) | 1);		//set to sleep mode so fsk bit can be written
+
+	//put into fsk mode
+	mode = radio_read_single_reg(REG_OP_MODE);
+	radio_write_single_reg(REG_OP_MODE,mode & ~(7<<5));         //set to FSK
+
+	//write modem config
+	radio_write_single_reg(REG_BITRATE_LSB,s->bitrate&0xFF);
+	radio_write_single_reg(REG_BITRATE_MSB,((s->bitrate)>>8)&0xFF);
+	radio_write_single_reg(REG_FDEV_LSB,s->freq_dev&0xFF);
+	radio_write_single_reg(REG_FDEV_MSB,((s->freq_dev)>>8)&0xFF);
+	radio_write_single_reg(REG_PREAMBLE_LSB_FSK,s->preamble_size&0xFF);
+	radio_write_single_reg(REG_PREAMBLE_MSB_FSK,((s->preamble_size)>>8)&0xFF);
+
+
+	if (s->enable_sync)
+		radio_write_single_reg(REG_SYNC_CONFIG, 3 | (1<<4) | (2<<6));
+	else
+		radio_write_single_reg(REG_SYNC_CONFIG, 3 | (2<<6));
+
+	mode = radio_read_single_reg(REG_PACKET_CONFIG1);
+	if (s->enable_crc)
+		radio_write_single_reg(REG_PACKET_CONFIG1,mode | (1<<4));
+	else
+		radio_write_single_reg(REG_PACKET_CONFIG1,mode & ~(1<<4));
+
+
+
 }
 
 //will change mode to standby if not already in standby or sleep
@@ -73,6 +121,17 @@ void radio_high_power(void)
 	radio_write_single_reg(REG_PA_CONFIG,POWER_HIGH);
 }
 
+void radio_pa_off(void)
+{
+	radio_write_single_reg(REG_PA_CONFIG,0x00);
+}
+
+void radio_lna_max(void)
+{
+	radio_write_single_reg(REG_LNA,0x23);
+
+}
+
 uint8_t radio_get_status(void)
 {
 	return radio_read_single_reg(REG_OP_MODE);
@@ -87,11 +146,6 @@ void radio_set_frequency(uint32_t f)
 	radio_write_single_reg(REG_FRF_MSB,f & 0xFF);
 }
 
-void radio_write_fsk_config(radio_fsk_settings_t s)
-{
-
-
-}
 
 void radio_set_slow_packet_time(void)
 {
@@ -109,6 +163,127 @@ void radio_set_implicit_mode(void)
 
 }
 
+
+//0 - below threshold, 1-above threshold
+uint8_t radio_fsk_poll_fifo_level(void)
+{
+	if (radio_read_single_reg(REG_IRQ_FLAGS2) & (1<<5))
+		return 1;
+	else
+		return 0;
+}
+
+void radio_fsk_set_fifo_threshold(uint8_t l)
+{
+	uint8_t r = radio_read_single_reg(REG_FIFO_THRESH);
+	radio_write_single_reg(REG_FIFO_THRESH,(r&(~0x3F)) | l);
+}
+
+void radio_start_tx_rtty(char *data, rtty_baud_t baud, uint8_t deviation)
+{
+	rtty_current_byte = data;
+	rtty_bit_counter_mask = 0;
+
+	radio_fsk_settings_t s1;
+	s1.freq_dev = deviation;
+	s1.enable_sync = 0;
+	s1.preamble_size = 0;
+	s1.enable_crc = 0;
+
+	if (baud == BAUD_50)
+	{
+		s1.bitrate = 40000;
+		rtty_byte_oversample = 2;
+	}
+	else if (baud == BAUD_300)
+	{
+
+	}
+	else  //baud_600
+	{
+
+	}
+
+	uint8_t mode = radio_read_single_reg(REG_OP_MODE);
+	if ((mode & 7) != MODE_TX)
+	{
+		radio_write_fsk_config(&s1);
+		radio_fsk_set_fifo_threshold(RTTY_FIFO_THRESHOLD);
+		uint8_t r = radio_read_single_reg(REG_OP_MODE) & 0xF8;
+		radio_write_single_reg(REG_OP_MODE, r | MODE_TX);
+	}
+
+	radio_rtty_write_bits(64);
+
+}
+
+uint8_t radio_rtty_poll_buffer_refill(void)
+{
+	uint8_t out = 0;
+	while (radio_fsk_poll_fifo_level() == 0 && *rtty_current_byte){
+		radio_rtty_write_bits(64-RTTY_FIFO_THRESHOLD);
+		out = 1;
+	}
+	return out;
+}
+
+//returns 0 when done
+uint8_t rtty_in_progress(void)
+{
+	if (*rtty_current_byte)
+		return 1;
+	else
+	{
+		uint8_t s = radio_read_single_reg(REG_IRQ_FLAGS2);
+		if (s & (1<<6))
+			return 0;
+		else
+			return 1;
+	}
+
+}
+
+static void radio_rtty_write_bits(uint8_t max_fifo_write)
+{
+	uint8_t written = 0;
+	uint8_t data,c;
+
+	radio_write_reg_start(0);
+
+	while((written < (max_fifo_write-rtty_byte_oversample+1))
+			&& (*rtty_current_byte != 0))
+	{
+		if (rtty_bit_counter_mask == 0)  //start bit
+		{
+			data = 0x0;
+			rtty_bit_counter_mask = (1<<0);
+		}
+		else if (rtty_bit_counter_mask >= (1<<7))  //stop bits
+		{
+			rtty_bit_counter_mask <<= 1;
+			data = 0xFF;
+			if (rtty_bit_counter_mask >= (1<<9))
+			{
+				rtty_bit_counter_mask = 0;
+				rtty_current_byte++;
+			}
+		}
+		else  //databits
+		{
+			if (*rtty_current_byte & rtty_bit_counter_mask)
+				data = 0xFF;
+			else
+				data = 0x0;
+			rtty_bit_counter_mask <<= 1;
+		}
+
+		for (c = 0; c < rtty_byte_oversample; c++)
+			radio_write_reg_continuing(data);
+		written += rtty_byte_oversample;
+	}
+
+	radio_write_reg_end();
+}
 
 void radio_tx_packet(uint8_t *data, uint16_t len)
 {
@@ -290,3 +465,23 @@ void radio_write_burst_reg(uint8_t reg, uint8_t *data, uint16_t len)
 	gpio_set(R_CS_PORT, R_CS_PIN);
 }
 
+static void radio_write_reg_start(uint8_t reg)
+{
+	while(SPI_SR(R_SPI) & SPI_SR_BSY);
+	gpio_clear(R_CS_PORT, R_CS_PIN);
+	spi_send8(R_SPI, reg | (1<<7));
+	spi_read8(R_SPI);
+}
+
+static void radio_write_reg_continuing(uint8_t data)
+{
+	while(SPI_SR(R_SPI) & SPI_SR_BSY);
+	spi_send8(R_SPI, data);
+	spi_read8(R_SPI);
+}
+
+static void radio_write_reg_end(void)
+{
+	while(SPI_SR(R_SPI) & SPI_SR_BSY);
+	gpio_set(R_CS_PORT, R_CS_PIN);
+}

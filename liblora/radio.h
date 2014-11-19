@@ -11,9 +11,14 @@ typedef struct radio_lora_settings_s
 
 typedef struct radio_fsk_settings_s
 {
-	uint8_t i;
- 	uint8_t k;
+	uint16_t freq_dev;
+ 	uint16_t bitrate;
+ 	uint8_t enable_sync;
+ 	uint8_t enable_crc;
+ 	uint16_t preamble_size;
 } radio_fsk_settings_t;
+
+typedef enum {BAUD_50, BAUD_300, BAUD_600} rtty_baud_t;
 
 
 void radio_init(void);
@@ -28,9 +33,15 @@ void radio_set_frequency(uint32_t);
 void radio_read_burst_reg(uint8_t reg, uint8_t *buff, uint16_t len);
 void radio_set_continuous_rx(void);
 int16_t radio_check_read_rx_packet(uint16_t max_len, uint8_t *buff, uint8_t check_crc);
+void radio_lna_max(void);
+void radio_pa_off(void);
+uint8_t radio_fsk_poll_fifo_level(void);
+void radio_fsk_set_fifo_threshold(uint8_t l);
+uint8_t radio_rtty_poll_buffer_refill(void);
+void radio_start_tx_rtty(char *data, rtty_baud_t baud, uint8_t deviation);
+uint8_t rtty_in_progress(void);
 
-
-
+#define RTTY_FIFO_THRESHOLD 20
 
 
 #define CODING_4_5 (0x1 << 1)
@@ -65,6 +76,9 @@ int16_t radio_check_read_rx_packet(uint16_t max_len, uint8_t *buff, uint8_t chec
 #define FREQ_434_050 7111475
 #define FREQ_434_075 7111885
 #define FREQ_434_100 7112294
+
+#define FDEV_600 1
+#define BITRATE_500 64000
 
 #define IRQ_RX_DONE (1<<6)
 #define IRQ_CRC_ERROR (1<<5)
