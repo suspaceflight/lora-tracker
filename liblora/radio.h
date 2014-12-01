@@ -36,12 +36,12 @@ int16_t radio_check_read_rx_packet(uint16_t max_len, uint8_t *buff, uint8_t chec
 void radio_lna_max(void);
 void radio_pa_off(void);
 uint8_t radio_fsk_poll_fifo_level(void);
-void radio_fsk_set_fifo_threshold(uint8_t l);
-uint8_t radio_rtty_poll_buffer_refill(void);
+uint8_t radio_rtty_poll_buffer_refill();
 void radio_start_tx_rtty(char *data, rtty_baud_t baud, uint8_t deviation);
 uint8_t rtty_in_progress(void);
+uint8_t lora_in_progress(void);
+void radio_sleep(void);
 
-#define RTTY_FIFO_THRESHOLD 20
 
 
 #define CODING_4_5 (0x1 << 1)

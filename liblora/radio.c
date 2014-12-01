@@ -15,6 +15,7 @@ static void radio_write_reg_start(uint8_t reg);
 static void radio_write_reg_continuing(uint8_t data);
 static void radio_write_reg_end(void);
 static void radio_rtty_write_bits(uint8_t max_fifo_write);
+static void radio_fsk_set_fifo_threshold(uint8_t l);
 
 inline uint16_t min(uint16_t in1, uint16_t in2)
 {
@@ -32,11 +33,14 @@ void radio_write_fsk_config(radio_fsk_settings_t *s)
 	mode |= (1<<3); //set LF range
 
 
-	radio_write_single_reg(REG_OP_MODE,(mode & ~(uint8_t)7) | 1);		//set to sleep mode so fsk bit can be written
+	if (mode & (1<<7))  //if in lora mode
+		radio_write_single_reg(REG_OP_MODE,(mode & ~(uint8_t)7));		//set to sleep mode so fsk bit can be written
+	else
+		radio_write_single_reg(REG_OP_MODE,(mode & ~(uint8_t)7) | 1);	//set to standby mode so various settings can be written
 
 	//put into fsk mode
 	mode = radio_read_single_reg(REG_OP_MODE);
-	radio_write_single_reg(REG_OP_MODE,mode & ~(7<<5));         //set to FSK
+	radio_write_single_reg(REG_OP_MODE,mode & ~(uint8_t)(7<<5));         //set to FSK
 
 	//write modem config
 	radio_write_single_reg(REG_BITRATE_LSB,s->bitrate&0xFF);
@@ -116,6 +120,13 @@ void radio_set_preamble(uint16_t pre)
 
 }
 
+void radio_sleep(void)
+{
+	uint8_t mode = radio_read_single_reg(REG_OP_MODE);
+    radio_write_single_reg(REG_OP_MODE,mode & ~(uint8_t)7);
+
+}
+
 void radio_high_power(void)
 {
 	radio_write_single_reg(REG_PA_CONFIG,POWER_HIGH);
@@ -163,6 +174,14 @@ void radio_set_implicit_mode(void)
 
 }
 
+//0 - done, 1 - still sending
+uint8_t lora_in_progress(void)
+{
+	if (radio_read_single_reg(REG_IRQ_FLAGS) & (1<<3))
+		return 0;
+	else
+		return 1;
+}
 
 //0 - below threshold, 1-above threshold
 uint8_t radio_fsk_poll_fifo_level(void)
@@ -173,7 +192,7 @@ uint8_t radio_fsk_poll_fifo_level(void)
 		return 0;
 }
 
-void radio_fsk_set_fifo_threshold(uint8_t l)
+static void radio_fsk_set_fifo_threshold(uint8_t l)
 {
 	uint8_t r = radio_read_single_reg(REG_FIFO_THRESH);
 	radio_write_single_reg(REG_FIFO_THRESH,(r&(~0x3F)) | l);
@@ -205,7 +224,7 @@ void radio_start_tx_rtty(char *data, rtty_baud_t baud, uint8_t deviation)
 	}
 
 	uint8_t mode = radio_read_single_reg(REG_OP_MODE);
-	if ((mode & 7) != MODE_TX)
+	if (((mode & 7) != MODE_TX) || (mode & (1<<7))!= 0)
 	{
 		radio_write_fsk_config(&s1);
 		radio_fsk_set_fifo_threshold(RTTY_FIFO_THRESHOLD);
@@ -217,7 +236,7 @@ void radio_start_tx_rtty(char *data, rtty_baud_t baud, uint8_t deviation)
 
 }
 
-uint8_t radio_rtty_poll_buffer_refill(void)
+uint8_t radio_rtty_poll_buffer_refill()
 {
 	uint8_t out = 0;
 	while (radio_fsk_poll_fifo_level() == 0 && *rtty_current_byte){
@@ -304,11 +323,6 @@ void radio_carrier_on(void)
 
 }
 
-void radio_sleep(void)
-{
-
-}
-
 
 void radio_init()
 {
@@ -338,6 +352,8 @@ void radio_init()
 
 	// Enable
 	spi_enable(R_SPI);
+
+	radio_sleep();
 
 
 }
