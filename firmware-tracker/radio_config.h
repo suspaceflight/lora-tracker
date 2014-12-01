@@ -6,3 +6,5 @@
 #define R_SPI_PORT   GPIOA
 #define R_SPI_PINS   GPIO5 | GPIO6 | GPIO7
 #define R_SPI_AFn    GPIO_AF0
+
+#define RTTY_FIFO_THRESHOLD 20
