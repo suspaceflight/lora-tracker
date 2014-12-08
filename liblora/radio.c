@@ -74,8 +74,11 @@ void radio_write_lora_config(radio_lora_settings_t *s)
 	mode |= (1<<3); //set LF range
 
 	//check in lora mode
-	if ((mode & (1<<7)) == 0)
+	if ((mode & (1<<7)) == 0){
 		radio_write_single_reg(REG_OP_MODE,mode & ~(uint8_t)7);		//set to sleep mode so lora bit can be written
+		mode = radio_read_single_reg(REG_OP_MODE);
+		radio_write_single_reg(REG_OP_MODE,mode | (1<<7));
+	}
 	else{
 		//check in right mode to change lora registers
 		if (!(((mode&MODE_MASK) == MODE_SLEEP) | ((mode&MODE_MASK) == MODE_STNDBY)))
@@ -85,8 +88,8 @@ void radio_write_lora_config(radio_lora_settings_t *s)
 	}
 
 	//put into lora mode
-	mode = radio_read_single_reg(REG_OP_MODE);
-	radio_write_single_reg(REG_OP_MODE,mode | (1<<7));
+	//mode = radio_read_single_reg(REG_OP_MODE);
+	//radio_write_single_reg(REG_OP_MODE,mode | (1<<7));
 
 	//write modem config
 	radio_write_single_reg(REG_MODEM_CONFIG1,
@@ -124,6 +127,13 @@ void radio_sleep(void)
 {
 	uint8_t mode = radio_read_single_reg(REG_OP_MODE);
     radio_write_single_reg(REG_OP_MODE,mode & ~(uint8_t)7);
+
+}
+
+void radio_standby(void)
+{
+	uint8_t mode = radio_read_single_reg(REG_OP_MODE);
+    radio_write_single_reg(REG_OP_MODE,(mode & ~(uint8_t)7) | 1);
 
 }
 
@@ -307,8 +317,14 @@ static void radio_rtty_write_bits(uint8_t max_fifo_write)
 void radio_tx_packet(uint8_t *data, uint16_t len)
 {
 
+	radio_write_single_reg(REG_IRQ_FLAGS,1<<3);  //clear TxDone
+
 	uint8_t r = radio_read_single_reg(REG_FIFO_TX_BASE_ADDR);
 	radio_write_single_reg(REG_FIFO_ADDR_PTR,r);
+
+	//radio_write_single_reg(REG_FIFO_TX_BASE_ADDR,0);
+	//radio_write_single_reg(REG_FIFO_ADDR_PTR,0);
+
 	radio_write_burst_reg(0,data,len);
 	radio_write_single_reg(REG_PAYLOAD_LENGTH_LORA,len);
 
@@ -365,9 +381,19 @@ uint8_t radio_read_version(void)
 
 void radio_set_continuous_rx(void)
 {
+
+
 	//go into rx mode
 	uint8_t r = radio_read_single_reg(REG_OP_MODE) & 0xF8;
 	radio_write_single_reg(REG_OP_MODE, r | MODE_RX);
+
+}
+
+void radio_set_single_rx(void)
+{
+	//go into rx mode
+	uint8_t r = radio_read_single_reg(REG_OP_MODE) & 0xF8;
+	radio_write_single_reg(REG_OP_MODE, r | MODE_RX_SINGLE);
 
 }
 /*

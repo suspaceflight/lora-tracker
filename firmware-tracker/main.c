@@ -11,6 +11,9 @@
 #include "radio.h"
 #include <stdio.h>
 
+#define ENABLE_GPS
+//#define LORA_RX
+//#define UPLINK
 
 void init(void);
 void _delay_ms(const uint32_t delay);
@@ -68,6 +71,7 @@ volatile uint8_t pos_valid = 0;
 volatile uint8_t time_valid = 0;
 
 uint16_t payload_counter = 0;
+uint16_t uplink_counter = 0;
 
 
 void init_wdt(void)
@@ -272,7 +276,7 @@ int main(void)
 {
 
 	init();
-	init_wdt();
+//	init_wdt();
 
  	radio_lora_settings_t s_lora;
  	s_lora.spreading_factor = 12;
@@ -282,21 +286,109 @@ int main(void)
 	s_lora.crc_en = 1;
 	s_lora.low_datarate = 1;
 
+	_delay_ms(100);
 
  	radio_init();
 
-  	//radio_reset();
+
+#ifdef LORA_RX
+ 	radio_write_lora_config(&s_lora);
+ 	radio_pa_off();
+	radio_lna_max();
+	radio_set_frequency(FREQ_434_100);
+	radio_set_continuous_rx();
+	int i;
+	int j=0;
+	while(1)
+	{
+		uint8_t stat = radio_read_single_reg(REG_MODEM_STAT);
+		uint8_t irq = radio_read_single_reg(REG_IRQ_FLAGS);
+		uint8_t nb = radio_read_single_reg(REG_RX_NB_BYTES);
+		uint8_t hrx = radio_read_single_reg(REG_RX_HEADER_CNT_VALUE_LSB);
+
+		snprintf(buff,60,"stat: %X  irq: %X headers rx: %X nBytes: %d\r\n",stat,irq,hrx,nb);
+		i=0;
+		//while (buff[i])
+		//	usart_send_blocking(USART1, buff[i++]);
+
+		if (irq & (1<<6))
+		{
+			int16_t r = radio_check_read_rx_packet(128,(uint8_t*)buff,1);
+
+			if (r > 0)
+			{
+				for (i = 0; i < r; i++)
+					usart_send_blocking(USART1, buff[i]);
+				int16_t snr = radio_read_single_reg(REG_PKT_SNR_VALUE);
+				if (snr & 0x80)
+					snr |= 0xFF00;
+				int16_t rssi = radio_read_single_reg(REG_PKT_RSSI_VALUE)-164;
+				int32_t error = radio_read_single_reg(REG_FEI_MSB_LORA) << 8;
+				error = (error | radio_read_single_reg(REG_FEI_MID_LORA)) << 8;
+				error |= radio_read_single_reg(REG_FEI_LSB_LORA);
+				if (error & (1<<19))
+					error |= 0xFFF00000;
+				r = snprintf(buff,60,"snr: %i  rssi: %i offset: %li     \r\n",snr,rssi,error);
+				i=0;
+				while (buff[i])
+					usart_send_blocking(USART1, buff[i++]);
+			}
+			else
+			{
+				snprintf(buff,60,"CRC ERROR\r\n");
+				i=0;
+				while (buff[i])
+					usart_send_blocking(USART1, buff[i++]);
+			}
+			radio_write_single_reg(REG_IRQ_FLAGS,0xFF);
+			if (0)//1)//(j++ &0x3) == 0x3)
+			{
+
+				radio_sleep();
+				_delay_ms(10);
+				radio_set_frequency(FREQ_434_100);
+				radio_write_lora_config(&s_lora);
+				radio_standby();
+				radio_high_power();
+				i=snprintf(buff,60,"PINGPINGPING");
+				_delay_ms(700);
+				radio_tx_packet(buff,i);
+
+				_delay_ms(200);
+				while(lora_in_progress())
+					_delay_ms(50);
+
+				radio_standby();
+				radio_pa_off();
+				radio_lna_max();
+				radio_set_frequency(FREQ_434_100);
+				radio_set_continuous_rx();
+
+
+			}
+
+		}
+
+		_delay_ms(250);
+	}
+
+
+#endif
+
+
  	radio_high_power();
 	radio_set_frequency(FREQ_434_100);
-
 
 	uint16_t k;
 
 	while(1)
 	{
 
+#ifndef ENABLE_GPS
+		time_updated = 1;
+#endif
 
-		while(time_updated == 0 ||  pos_updated == 0 || gnss_status_updated == 0);
+		while(time_updated == 0 &&  pos_updated == 0 && gnss_status_updated == 0);
 
 		nvic_disable_irq(NVIC_USART1_IRQ);
 		int32_t _latitude = latitude;
@@ -330,7 +422,7 @@ int main(void)
 			k+=snprintf(&buff[k],105-k,",,,%u",
 					_sats);
 
-		k+=snprintf(&buff[k],105-k,",%u",bv);
+		k+=snprintf(&buff[k],105-k,",%u,%u",bv,uplink_counter);
 
 		uint16_t crc = calculate_crc16(&buff[7]);
 
@@ -342,13 +434,13 @@ int main(void)
 		buff[3] = 0x80;
 		buff[4] = 0x80;
 
-		if (payload_counter == 4){
-			while(1);}
+		//if (payload_counter == 4){
+		//	while(1);}
 
 		//WDT reset
 		IWDG_KR = 0xAAAA;
 
-		if (payload_counter & 1)  //rtty
+		if ((payload_counter & 0x3) == 0x3)  //rtty
 		{
 			radio_sleep();
 			_delay_ms(10);
@@ -358,19 +450,27 @@ int main(void)
 				radio_rtty_poll_buffer_refill(20);
 				_delay_ms(20);
 			}
+			_delay_ms(100);
+			radio_sleep();
 		}
 		else   //lora
 		{
 			radio_sleep();
 			_delay_ms(10);
 			radio_write_lora_config(&s_lora);
-			radio_high_power();
 
-			GPIOB_ODR = 0;
+			radio_standby();
+			radio_high_power();
+			radio_set_frequency(FREQ_434_100);
+
+
 
 			radio_tx_packet(&buff[5],k-5);
 			//_delay_ms(12500);
-			GPIOB_ODR = (1<<1);
+
+
+			_delay_ms(200);
+
 
 			while(lora_in_progress())
 				_delay_ms(50);
@@ -378,7 +478,61 @@ int main(void)
 
 		}
 
-		_delay_ms(1000);
+#ifdef UPLINK
+		uint8_t uplink_en = 1;
+		int i;
+
+		if (uplink_en)
+		{
+			radio_standby();
+			radio_pa_off();
+			radio_lna_max();
+			radio_set_frequency(FREQ_434_100);
+			radio_write_single_reg(REG_IRQ_FLAGS,0xFF);
+			radio_set_continuous_rx();
+			GPIOB_ODR = 0;
+			//see if we get a header
+			_delay_ms(1200);
+			uint8_t stat = radio_read_single_reg(REG_MODEM_STAT);
+			if (stat & (1<<0))
+			{
+				//wait for packet
+				uint8_t count = 50;
+				while(count){
+					_delay_ms(100);
+					uint8_t irq = radio_read_single_reg(REG_IRQ_FLAGS);
+					stat = radio_read_single_reg(REG_MODEM_STAT);
+					stat = radio_read_single_reg(REG_MODEM_STAT);
+					irq = radio_read_single_reg(REG_IRQ_FLAGS);
+					uint8_t nb = radio_read_single_reg(REG_RX_NB_BYTES);
+					uint8_t hrx = radio_read_single_reg(REG_RX_HEADER_CNT_VALUE_LSB);
+
+					snprintf(buff,60,"stat: %X  irq: %X headers rx: %X nBytes: %d\r\n",stat,irq,hrx,nb);
+					i=0;
+					while (buff[i])
+						usart_send_blocking(USART1, buff[i++]);
+
+					if (irq & (1<<6))
+					{
+						count = 0;
+						uplink_counter++;
+					}
+					else
+						count--;
+				}
+			}
+
+			GPIOB_ODR = (1<<1);
+			radio_sleep();
+			_delay_ms(10);
+			radio_set_frequency(FREQ_434_100);
+			radio_write_lora_config(&s_lora);
+			radio_standby();
+			radio_high_power();
+		}
+#endif
+
+		_delay_ms(500);
 	}
 
 /*

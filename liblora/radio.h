@@ -36,11 +36,14 @@ int16_t radio_check_read_rx_packet(uint16_t max_len, uint8_t *buff, uint8_t chec
 void radio_lna_max(void);
 void radio_pa_off(void);
 uint8_t radio_fsk_poll_fifo_level(void);
-uint8_t radio_rtty_poll_buffer_refill();
+uint8_t radio_rtty_poll_buffer_refill(void);
 void radio_start_tx_rtty(char *data, rtty_baud_t baud, uint8_t deviation);
 uint8_t rtty_in_progress(void);
 uint8_t lora_in_progress(void);
 void radio_sleep(void);
+void radio_standby(void);
+void radio_set_single_rx(void);
+
 
 
 
@@ -67,6 +70,7 @@ void radio_sleep(void);
 #define MODE_TX 3
 #define MODE_FSRX 4
 #define MODE_RX 5
+#define MODE_RX_SINGLE 6
 #define MODE_MASK 7
 
 #define POWER_HIGH 0x88
@@ -76,6 +80,8 @@ void radio_sleep(void);
 #define FREQ_434_050 7111475
 #define FREQ_434_075 7111885
 #define FREQ_434_100 7112294
+
+#define FREQ_434_300 7115571
 
 #define FDEV_600 1
 #define BITRATE_500 64000
