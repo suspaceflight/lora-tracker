@@ -73,8 +73,10 @@
   </Target>
   <Components path="./"/>
   <Files>
+    <File name="gps.c" path="../firmware-basestation/libopencm3-usb/lib/cm3/gps.c" type="1"/>
     <File name="radio.c" path="../liblora/radio.c" type="1"/>
     <File name="syscalls.c" path="../firmware-basestation/syscalls.c" type="1"/>
+    <File name="gps.h" path="../firmware-basestation/libopencm3-usb/lib/cm3/gps.h" type="1"/>
     <File name="main.c" path="main.c" type="1"/>
   </Files>
 </Project>
