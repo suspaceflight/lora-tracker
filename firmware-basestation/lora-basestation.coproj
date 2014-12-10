@@ -72,9 +72,11 @@
   </Target>
   <Components path="./"/>
   <Files>
+    <File name="screen.c" path="../firmware-tracker/screen.c" type="1"/>
     <File name="radio.c" path="../liblora/radio.c" type="1"/>
     <File name="syscalls.c" path="syscalls.c" type="1"/>
     <File name="radio_config.h" path="radio_config.h" type="1"/>
+    <File name="screen.h" path="../firmware-tracker/screen.h" type="1"/>
     <File name="main.c" path="main.c" type="1"/>
   </Files>
 </Project>

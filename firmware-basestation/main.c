@@ -7,6 +7,7 @@
 #include <libopencm3/stm32/usart.h>
 #include <libopencm3/stm32/dma.h>
 #include <libopencm3/stm32/iwdg.h>
+#include <libopencm3/stm32/i2c.h>
 #include <libopencm3/cm3/nvic.h>
 #include "radio.h"
 #include <stdio.h>
@@ -181,6 +182,23 @@ int main(void)
 {
 
 	init();
+	screen_init();
+	backlight_on();
+
+	buff[0] = 0b01000000;
+	buff[1] = 'A';
+	buff[2] = 'b';
+
+	while(1)
+	{
+
+		screen_test();
+		_delay_ms(500);
+		backlight_on();
+		_delay_ms(5000);
+		backlight_off();
+
+	}
 //	init_wdt();
 
  	radio_lora_settings_t s_lora;
