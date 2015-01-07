@@ -158,13 +158,24 @@ uint8_t radio_get_status(void)
 	return radio_read_single_reg(REG_OP_MODE);
 }
 
-void radio_set_frequency(uint32_t f)
+void radio_set_frequency_frreg(uint32_t f)
 {
 	radio_write_single_reg(REG_FRF_LSB,f & 0xFF);
 	f >>= 8;
 	radio_write_single_reg(REG_FRF_MID,f & 0xFF);
 	f >>= 8;
 	radio_write_single_reg(REG_FRF_MSB,f & 0xFF);
+}
+
+void radio_set_frequency_frq(uint32_t f)
+{
+	uint64_t reg;
+	reg = (uint64_t)f << 19;
+	reg = reg / 32000000L;
+
+	radio_set_frequency_frreg((uint32_t)reg);
+
+
 }
 
 

@@ -6,6 +6,8 @@ typedef struct radio_lora_settings_s
  	uint8_t implicit_mode;
  	uint8_t crc_en;
  	uint8_t low_datarate;
+ 	uint32_t frequency;
+ 	uint8_t enable_frequency_tracking;
 } radio_lora_settings_t;
 
 
@@ -29,7 +31,8 @@ void radio_write_burst_reg(uint8_t reg, uint8_t *data, uint16_t len);
 void radio_tx_packet(uint8_t *data, uint16_t len);
 void radio_write_lora_config(radio_lora_settings_t *s);
 void radio_high_power(void);
-void radio_set_frequency(uint32_t);
+void radio_set_frequency_frreg(uint32_t);
+void radio_set_frequency_frq(uint32_t);
 void radio_read_burst_reg(uint8_t reg, uint8_t *buff, uint16_t len);
 void radio_set_continuous_rx(void);
 int16_t radio_check_read_rx_packet(uint16_t max_len, uint8_t *buff, uint8_t check_crc);

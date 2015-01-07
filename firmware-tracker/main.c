@@ -13,7 +13,7 @@
 
 #define ENABLE_GPS
 //#define LORA_RX
-//#define UPLINK
+#define UPLINK
 
 void init(void);
 void _delay_ms(const uint32_t delay);
@@ -295,7 +295,7 @@ int main(void)
  	radio_write_lora_config(&s_lora);
  	radio_pa_off();
 	radio_lna_max();
-	radio_set_frequency(FREQ_434_100);
+	radio_set_frequency_frq(434098000);
 	radio_set_continuous_rx();
 	int i;
 	int j=0;
@@ -308,14 +308,14 @@ int main(void)
 
 		snprintf(buff,60,"stat: %X  irq: %X headers rx: %X nBytes: %d\r\n",stat,irq,hrx,nb);
 		i=0;
-		//while (buff[i])
-		//	usart_send_blocking(USART1, buff[i++]);
+		while (buff[i])
+			usart_send_blocking(USART1, buff[i++]);
 
 		if (irq & (1<<6))
 		{
 			int16_t r = radio_check_read_rx_packet(128,(uint8_t*)buff,1);
 
-			if (r > 0)
+			//if (r > 0)
 			{
 				for (i = 0; i < r; i++)
 					usart_send_blocking(USART1, buff[i]);
@@ -328,12 +328,13 @@ int main(void)
 				error |= radio_read_single_reg(REG_FEI_LSB_LORA);
 				if (error & (1<<19))
 					error |= 0xFFF00000;
-				r = snprintf(buff,60,"snr: %i  rssi: %i offset: %li     \r\n",snr,rssi,error);
+				snprintf(buff,60,"snr: %i  rssi: %i offset: %li     \r\n",snr,rssi,error);
 				i=0;
 				while (buff[i])
 					usart_send_blocking(USART1, buff[i++]);
 			}
-			else
+			//else
+			if (r < 0)
 			{
 				snprintf(buff,60,"CRC ERROR\r\n");
 				i=0;
@@ -346,7 +347,7 @@ int main(void)
 
 				radio_sleep();
 				_delay_ms(10);
-				radio_set_frequency(FREQ_434_100);
+				radio_set_frequency_frreg(FREQ_434_100);
 				radio_write_lora_config(&s_lora);
 				radio_standby();
 				radio_high_power();
@@ -361,7 +362,7 @@ int main(void)
 				radio_standby();
 				radio_pa_off();
 				radio_lna_max();
-				radio_set_frequency(FREQ_434_100);
+				radio_set_frequency_frreg(FREQ_434_100);
 				radio_set_continuous_rx();
 
 
@@ -377,7 +378,7 @@ int main(void)
 
 
  	radio_high_power();
-	radio_set_frequency(FREQ_434_100);
+	radio_set_frequency_frreg(FREQ_434_100);
 
 	uint16_t k;
 
@@ -447,7 +448,7 @@ int main(void)
 			radio_high_power();
 			radio_start_tx_rtty((char*)buff,BAUD_50,4);
 			while(rtty_in_progress() != 0){
-				radio_rtty_poll_buffer_refill(20);
+				radio_rtty_poll_buffer_refill();
 				_delay_ms(20);
 			}
 			_delay_ms(100);
@@ -461,7 +462,7 @@ int main(void)
 
 			radio_standby();
 			radio_high_power();
-			radio_set_frequency(FREQ_434_100);
+			radio_set_frequency_frreg(FREQ_434_100);
 
 
 
@@ -482,12 +483,15 @@ int main(void)
 		uint8_t uplink_en = 1;
 		int i;
 
-		if (uplink_en)
+		if (uplink_en && !((payload_counter & 0x3) == 0x3))
 		{
+			radio_sleep();
+			s_lora.bandwidth = BANDWIDTH_62_5K;
+			radio_write_lora_config(&s_lora);
 			radio_standby();
 			radio_pa_off();
 			radio_lna_max();
-			radio_set_frequency(FREQ_434_100);
+			radio_set_frequency_frreg(FREQ_434_100);
 			radio_write_single_reg(REG_IRQ_FLAGS,0xFF);
 			radio_set_continuous_rx();
 			GPIOB_ODR = 0;
@@ -507,7 +511,14 @@ int main(void)
 					uint8_t nb = radio_read_single_reg(REG_RX_NB_BYTES);
 					uint8_t hrx = radio_read_single_reg(REG_RX_HEADER_CNT_VALUE_LSB);
 
-					snprintf(buff,60,"stat: %X  irq: %X headers rx: %X nBytes: %d\r\n",stat,irq,hrx,nb);
+					int32_t ui_offset = radio_read_single_reg(REG_FEI_MSB_LORA) << 8;
+					ui_offset = (ui_offset | radio_read_single_reg(REG_FEI_MID_LORA)) << 8;
+					ui_offset |= radio_read_single_reg(REG_FEI_LSB_LORA);
+
+					if (ui_offset & 0x080000)
+						ui_offset |= 0xFFF00000;
+
+					snprintf(buff,60,"stat: %X  irq: %X headers rx: %X nBytes: %d offset: %li\r\n",stat,irq,hrx,nb,ui_offset);
 					i=0;
 					while (buff[i])
 						usart_send_blocking(USART1, buff[i++]);
@@ -525,10 +536,14 @@ int main(void)
 			GPIOB_ODR = (1<<1);
 			radio_sleep();
 			_delay_ms(10);
-			radio_set_frequency(FREQ_434_100);
+			s_lora.bandwidth = BANDWIDTH_20_8K;
 			radio_write_lora_config(&s_lora);
+			radio_set_frequency_frreg(FREQ_434_100);
+
+			/*
 			radio_standby();
 			radio_high_power();
+			*/
 		}
 #endif
 
