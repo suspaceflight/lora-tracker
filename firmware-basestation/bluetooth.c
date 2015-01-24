@@ -64,6 +64,12 @@ void bluetooth_init(void)
 
 }
 
+void bluetooth_sleep(void)
+{
+	gpio_clear(B_WAKE_HW_PORT,B_WAKE_HW_PIN);
+	gpio_clear(B_WAKE_SW_PORT,B_WAKE_SW_PIN);
+}
+
 void bluetooth_wakeup(void)
 {
 	gpio_clear(B_CMD_PORT,B_CMD_PIN);

@@ -29,6 +29,7 @@ typedef enum {IDLE, ADVERTISING, CONNECTED, DISCONNECTED} bt_status_t;
 
 void bluetooth_init(void);
 void bluetooth_wakeup(void);
+void bluetooth_sleep(void);
 void bluetooth_configure(void);
 uint8_t check_characteristic_handle(void);
 void bt_timer_10ms_tick(void);

@@ -130,6 +130,7 @@ uint8_t parse_ascii(char *buff, uint16_t max_in_len, char *call, uint32_t *seq,
 	}
 	i++;
 
+	out |= (1<<0);
 
 	return out;
 }

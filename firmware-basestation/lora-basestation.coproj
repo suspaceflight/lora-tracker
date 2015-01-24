@@ -78,8 +78,8 @@
     <File name="radio.c" path="../liblora/radio.c" type="1"/>
     <File name="syscalls.c" path="syscalls.c" type="1"/>
     <File name="radio_config.h" path="radio_config.h" type="1"/>
-    <File name="screen.h" path="screen.h" type="1"/>
     <File name="delay.h" path="delay.h" type="1"/>
+    <File name="screen.h" path="screen.h" type="1"/>
     <File name="bluetooth.c" path="bluetooth.c" type="1"/>
     <File name="bluetooth.h" path="bluetooth.h" type="1"/>
     <File name="delay.c" path="delay.c" type="1"/>

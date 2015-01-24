@@ -6,6 +6,7 @@
 #include <libopencm3/stm32/adc.h>
 #include <libopencm3/stm32/usart.h>
 #include <libopencm3/stm32/dma.h>
+#include <libopencm3/stm32/pwr.h>
 #include <libopencm3/stm32/iwdg.h>
 #include <libopencm3/stm32/i2c.h>
 #include <libopencm3/stm32/exti.h>
@@ -61,10 +62,14 @@ static uint32_t time_since_last_rstat = 0;
 static uint8_t last_rstat = 0;  //0 - none, 1 - crc err, 2 - packet
 static char ui_lati[10]="--.----  ";
 static char ui_longi[10]="---.---- ";
+static char ui_lati_prev[10]="--.----  ";
+static char ui_longi_prev[10]="---.---- ";
 static int32_t ui_alt = 0;
 static int16_t ui_rssi = 0;
 static int32_t ui_offset = 0;
 static uint32_t ui_time = 0;
+static uint32_t ui_time_prev = 0;
+static volatile uint8_t ui_status_led = 0;   //bit0: led status (0 - bad, 1 - good); bit1: currently being flashed?
 static int32_t ui_sequence = -1;
 static volatile uint8_t redraw_timers_flag = 0;
 static volatile uint8_t redraw_screen_flag = 0;
@@ -78,6 +83,11 @@ static volatile int last_btn_preset = 0;
 static volatile int last_btn_menu = 0;
 static volatile int last_btn_rotm = 0;
 static volatile int menu_preset_sel = 1;
+
+static volatile uint16_t adc_input = 0;
+static volatile uint16_t adc_batt = 0;
+static volatile uint8_t adc_chan = 0;
+static volatile uint8_t adc_low_input_count = 0;
 
 /// radio parameters
 volatile radio_lora_settings_t s_lora;
@@ -94,7 +104,7 @@ volatile uint8_t preset_lock[PRESET_MAX];
 
 
 // UI state
-typedef enum {PAYLOAD, RSSI, POSITION, RADIO_STATUS, RADIO_FREQ} ui_main_t;
+typedef enum {PAYLOAD, RSSI, POSITION, RADIO_STATUS, RADIO_FREQ, BATT_VOLTAGE} ui_main_t;
 ui_main_t ui_main = PAYLOAD;
 typedef enum {MENU_FREQ, MENU_SF, MENU_BW, MENU_TRACK, MENU_UPLINK, MENU_AUTOPING} ui_menu_option_t;
 ui_menu_option_t ui_menu = MENU_FREQ;
@@ -137,6 +147,7 @@ static ui_uplink_msg_t dec_uplink_msg(ui_uplink_msg_t in);
 static void switch_to_rx(void);
 static void switch_to_tx(void);
 static void send_uplink(void);
+static void low_batt(void);
 
 void init_wdt(void)
 {
@@ -198,6 +209,10 @@ void init (void)
 	gpio_clear(LED_PST_PORT,LED_PST_PIN);
 	gpio_clear(LED_MENU_PORT,LED_MENU_PIN);
 
+	gpio_mode_setup(LED_RED_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_PULLUP, LED_RED_PIN);
+	gpio_mode_setup(LED_GRN_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_PULLUP, LED_GRN_PIN);
+	gpio_set(LED_RED_PORT,LED_RED_PIN);
+	gpio_clear(LED_GRN_PORT,LED_GRN_PIN);
 
 	//radio interrupt
 	//poll :(
@@ -210,25 +225,28 @@ void init (void)
 	systick_interrupt_enable();
 	systick_counter_enable();
 
-/*
+
 	//adc
 	rcc_periph_clock_enable(RCC_ADC);
 	rcc_periph_clock_enable(RCC_GPIOA);
 	gpio_mode_setup(GPIOA, GPIO_MODE_ANALOG, GPIO_PUPD_NONE, GPIO1);
-	uint8_t channel_array[] = { ADC_CHANNEL1};
+	gpio_mode_setup(GPIOA, GPIO_MODE_ANALOG, GPIO_PUPD_NONE, GPIO0);
+	uint8_t channel_array[] = {ADC_CHANNEL0,ADC_CHANNEL1 };
 	adc_power_off(ADC1);
 	adc_calibrate_start(ADC1);
 	adc_calibrate_wait_finish(ADC1);
 	//adc_set_operation_mode(ADC1, ADC_MODE_SCAN); //adc_set_operation_mode(ADC1, ADC_MODE_SCAN_INFINITE);
-	adc_set_operation_mode(ADC1, ADC_MODE_SCAN);
+	adc_set_operation_mode(ADC1, ADC_MODE_SEQUENTIAL);
 //	adc_set_single_conversion_mode(ADC1);
 	adc_set_right_aligned(ADC1);
-	adc_set_sample_time_on_all_channels(ADC1, ADC_SMPTIME_013DOT5);
-	adc_set_regular_sequence(ADC1, 1, channel_array);
+	adc_set_sample_time_on_all_channels(ADC1, ADC_SMPTIME_239DOT5);
+	adc_set_regular_sequence(ADC1, 2, channel_array);
 	adc_set_resolution(ADC1, ADC_RESOLUTION_12BIT);
-	//adc_set_single_conversion_mode(ADC1);
+	adc_set_single_conversion_mode(ADC1);
+	adc_enable_eoc_interrupt(ADC1);
+	nvic_enable_irq(NVIC_ADC_COMP_IRQ);
 	adc_disable_analog_watchdog(ADC1);
-	adc_power_on(ADC1); */
+	adc_power_on(ADC1);
 
 
 	//uart
@@ -259,9 +277,9 @@ void init (void)
 	usart_enable(USART2);
 
 */
-/*
+
 	adc_start_conversion_regular(ADC1);
-*/
+
 }
 
 void exti4_15_isr(void)
@@ -455,6 +473,29 @@ void exti4_15_isr(void)
 
 }
 
+void adc_comp_isr(void)
+{
+	if (adc_chan)
+	{
+		adc_input = adc_read_regular(ADC1);
+	}
+	else
+	{
+		adc_chan = 1;
+		adc_batt = adc_read_regular(ADC1);
+		adc_start_conversion_regular(ADC1);
+		if (adc_batt < 2250 && adc_input < 2250)  //~3.6V
+		{
+			adc_low_input_count++;
+			if (adc_low_input_count > 3)
+				low_batt();
+		}
+		else
+			adc_low_input_count = 0;
+	}
+
+}
+
 void usart2_isr(void)
 {
 	if (((USART_ISR(USART2) & USART_ISR_RXNE) != 0))
@@ -499,8 +540,24 @@ void sys_tick_handler(void)
 		time_since_last++;
 		time_since_last_rstat++;
 		redraw_timers_flag = 1;
+		if (ADC1_ISR & (ADC_ISR_EOSMP)){
+			adc_start_conversion_regular(ADC1);
+			adc_chan = 0;
+		}
 	}
 	seconds_prescaler--;
+	if (seconds_prescaler == 500){
+		if (ui_status_led & 2){
+			ui_status_led = (~ui_status_led)&1;
+			if ((ui_status_led&1) == 0){
+				gpio_clear(LED_RED_PORT,LED_RED_PIN);
+				gpio_set(LED_GRN_PORT,LED_GRN_PIN);
+			}else{
+				gpio_set(LED_RED_PORT,LED_RED_PIN);
+				gpio_clear(LED_GRN_PORT,LED_GRN_PIN);
+			}
+		}
+	}
 
 	if ((GPIO_IDR(BTN_PST_PORT) & BTN_PST_PIN) == 0)
 	{
@@ -1012,6 +1069,31 @@ void process_packet(char *buff, uint16_t max_len)
 	time_since_last = 0;
 	seconds_prescaler = 1000;
 
+	//check if telemetry is good
+	if ((ui_time == ui_time_prev) ||
+			(strcmp(ui_lati,ui_lati_prev) == 0) ||
+			(strcmp(ui_longi,ui_longi_prev)==0) ||
+			(ui_position_valid_flags != 0b11111))
+	{
+		ui_status_led = 0;
+	}
+	else
+		ui_status_led = 1;
+	ui_time_prev = ui_time;
+	strncpy(ui_lati_prev,ui_lati,10);
+	strncpy(ui_longi_prev,ui_longi,10);
+
+	//flash status LED
+	ui_status_led = ((~ui_status_led)&1) | 2;
+	if ((ui_status_led&1) == 0){
+		gpio_clear(LED_RED_PORT,LED_RED_PIN);
+		gpio_set(LED_GRN_PORT,LED_GRN_PIN);
+	}else{
+		gpio_set(LED_RED_PORT,LED_RED_PIN);
+		gpio_clear(LED_GRN_PORT,LED_GRN_PIN);
+	}
+
+	//uplink stuff
 	if (ui_state == MENU_OPTIONS_CONFIRM)
 	{
 		//see if uplink window
@@ -1145,7 +1227,9 @@ static ui_main_t inc_ui_main(ui_main_t in)
 			return RADIO_STATUS;
 		case RADIO_STATUS:
 			return RADIO_FREQ;
-		default: //RADIO_FREQ
+		case RADIO_FREQ:
+			return BATT_VOLTAGE;
+		default: //BATT_VOLTAGE
 			return PAYLOAD;
 	}
 }
@@ -1153,15 +1237,17 @@ static ui_main_t dec_ui_main(ui_main_t in)
 {
 	switch(in){
 		case PAYLOAD:
-			return RADIO_FREQ;
+			return BATT_VOLTAGE;
 		case RSSI:
 			return PAYLOAD;
 		case POSITION:
 			return RSSI;
 		case RADIO_STATUS:
 			return POSITION;
-		default: //RADIO_FREQ
+		case RADIO_FREQ:
 			return RADIO_STATUS;
+		default: //BATT_VOLTAGE
+			return RADIO_FREQ;
 	}
 }
 static ui_menu_option_t inc_ui_menu(ui_menu_option_t in)
@@ -1250,6 +1336,12 @@ static void redraw_timers(void)
 			case RADIO_FREQ:
 
 				break;
+			case BATT_VOLTAGE:
+				snprintf(buff,8,"%lu mV   ",(((unsigned long)adc_batt)*161)/100);
+				screen_write_text(buff,9);
+				//snprintf(buff,7,"%lu mV   ",((unsigned long)adc_input)*161/100);
+				//screen_write_text(buff,ROW_TOP | 8);
+				break;
 			default:
 				break;
 		}
@@ -1265,6 +1357,16 @@ static void redraw_screen(void)
 	//the on-off-on flicker wont be noticeable
 	gpio_clear(LED_PST_PORT,LED_PST_PIN);
 	gpio_clear(LED_MENU_PORT,LED_MENU_PIN);
+
+	if ((ui_status_led&1) == 0){
+		gpio_clear(LED_RED_PORT,LED_RED_PIN);
+		gpio_set(LED_GRN_PORT,LED_GRN_PIN);
+	}
+	else{
+		gpio_set(LED_RED_PORT,LED_RED_PIN);
+		gpio_clear(LED_GRN_PORT,LED_GRN_PIN);
+	}
+
 
 
 	char buff[17];
@@ -1319,13 +1421,16 @@ static void redraw_screen(void)
 				if (last_rstat > 0)
 					screen_write_text(buff,ROW_BOT);
 				break;
-			default: //RADIO_FREQ
+			case RADIO_FREQ:
 				snprintf(buff,17,"Freq: ");
 				screen_write_text(buff,0);
 				print_frequency(buff,s_lora.frequency,5);
 				screen_write_text(buff,6);
 				snprintf(buff,17,"Offset: %liHz",(long)ui_offset);
 				screen_write_text(buff,ROW_BOT);
+				break;
+			default: //BATT_VOLTAGE
+				screen_write_text("Battery: ",0);
 				break;
 		}
 	}
@@ -1648,3 +1753,25 @@ static void send_uplink(void)
 		_delay_ms(50);
 	switch_to_rx();
 }
+
+static void low_batt(void)
+{
+	//TURN OFF ALL THE THINGS!
+	gpio_clear(LED_PST_PORT,LED_PST_PIN);
+	gpio_clear(LED_MENU_PORT,LED_MENU_PIN);
+	gpio_set(LED_RED_PORT,LED_RED_PIN);
+	gpio_clear(LED_GRN_PORT,LED_GRN_PIN);
+	screen_clear_row(ROW_TOP);
+	screen_clear_row(ROW_BOT);
+	screen_write_text("CONNECT CHARGER",0);
+	backlight_off();
+	radio_sleep();
+	bluetooth_sleep();
+	systick_counter_disable();
+	rcc_periph_clock_disable(RCC_ADC);
+	rcc_periph_clock_disable(RCC_USART1);
+	rcc_periph_clock_disable(RCC_USART2);
+	pwr_set_stop_mode();
+	while(1);
+}
+
