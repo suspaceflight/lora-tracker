@@ -13627,6 +13627,7 @@ Source: RS Component / Phycomp</description>
 <wire x1="-55.88" y1="292.1" x2="190.5" y2="292.1" width="0.4064" layer="97"/>
 <wire x1="190.5" y1="292.1" x2="190.5" y2="-60.96" width="0.4064" layer="97"/>
 <wire x1="190.5" y1="-60.96" x2="-55.88" y2="-60.96" width="0.4064" layer="97"/>
+<text x="111.76" y="-20.32" size="1.778" layer="91" rot="R90">low leakage</text>
 </plain>
 <instances>
 <instance part="U2" gate="G$1" x="12.7" y="162.56"/>
