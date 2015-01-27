@@ -1065,7 +1065,12 @@ void process_packet(char *buff, uint16_t max_len)
 {
 	correct_offset();
 
-	ui_position_valid_flags = parse_ascii(buff, max_len, ui_payload, (uint32_t *)(&ui_sequence), &ui_time, ui_lati, ui_longi, &ui_alt, 10);
+
+	if ((buff[0] & 0xF0) == 0x80){ //check for msgpack
+		ui_position_valid_flags = parse_habpack(buff, max_len, ui_payload, (uint32_t *)(&ui_sequence), &ui_time, ui_lati, ui_longi, &ui_alt, 10);
+	}
+	else
+		ui_position_valid_flags = parse_ascii(buff, max_len, ui_payload, (uint32_t *)(&ui_sequence), &ui_time, ui_lati, ui_longi, &ui_alt, 10);
 	time_since_last = 0;
 	seconds_prescaler = 1000;
 
