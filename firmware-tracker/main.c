@@ -8,17 +8,24 @@
 #include <libopencm3/stm32/dma.h>
 #include <libopencm3/stm32/iwdg.h>
 #include <libopencm3/cm3/nvic.h>
-#include "radio.h"
+
 #include <stdio.h>
+#include <string.h>
+
+#include "radio.h"
+#include "cmp.h"
 
 #define ENABLE_GPS
 //#define LORA_RX
 #define UPLINK
 
+#define TESTING
+
 void init(void);
 void _delay_ms(const uint32_t delay);
 void uart_send_blocking_len(uint8_t *buff, uint16_t len);
 uint16_t calculate_crc16 (char *input);
+uint16_t process_packet(char* buffer, uint16_t len, uint8_t format);
 
 
 char buff[128] = {0};
@@ -73,6 +80,36 @@ volatile uint8_t time_valid = 0;
 uint16_t payload_counter = 0;
 uint16_t uplink_counter = 0;
 
+///////// msgpack stuff
+//#define HB_BUF_LEN 100
+//uint8_t hb_buf[HB_BUF_LEN] = {0};
+uint8_t hb_buf_ptr = 0;
+
+static bool read_bytes(void *data, size_t sz, FILE *fh) {
+    return fread(data, sizeof(uint8_t), sz, fh) == (sz * sizeof(uint8_t));
+}
+
+static bool file_reader(cmp_ctx_t *ctx, void *data, size_t limit) {
+    return read_bytes(data, limit, (FILE *)ctx->buf);
+}
+
+static size_t file_writer(cmp_ctx_t *ctx, const void *data, size_t count) {
+
+	uint16_t i;
+	//if (hb_buf_ptr+count > HB_BUF_LEN)
+	//	return -1;
+
+	for (i = 0; i < count; i++)
+	{
+		((char*)ctx->buf)[hb_buf_ptr] = *((uint8_t*)data);
+		data++;
+		hb_buf_ptr++;
+	}
+	return count;
+    //return fwrite(data, sizeof(uint8_t), count, (FILE *)ctx->buf);
+}
+
+/////////////////
 
 void init_wdt(void)
 {
@@ -276,7 +313,9 @@ int main(void)
 {
 
 	init();
-//	init_wdt();
+#ifndef TESTING
+	init_wdt();
+#endif
 
  	radio_lora_settings_t s_lora;
  	s_lora.spreading_factor = 12;
@@ -391,58 +430,14 @@ int main(void)
 
 		while(time_updated == 0 &&  pos_updated == 0 && gnss_status_updated == 0);
 
-		nvic_disable_irq(NVIC_USART1_IRQ);
-		int32_t _latitude = latitude;
-		int32_t _longitude = longitude;
-		int32_t _altitude = altitude/1000;
-		uint8_t _hour = hour;
-		uint8_t _minute = minute;
-		uint8_t _second = second;
-		uint8_t _sats = sats;
-		gnss_status_updated = 0;
-		pos_updated = 0;
-		gnss_status_updated = 0;
-		nvic_enable_irq(NVIC_USART1_IRQ);
-
-		uint32_t bv = ADC1_DR;
-		bv = bv * 8;
-		bv = bv/100;
-		adc_start_conversion_regular(ADC1);
-
-		k=snprintf(buff,105,"xxxxx$$PAYLOAD,%u,",payload_counter++);
-		if (time_valid)
-			k+=snprintf(&buff[k],105-k,"%02u:%02u:%02u,",
-					_hour,_minute,_second);
-		else
-			k+=snprintf(&buff[k],105-k,",");
-
-		if (pos_valid)
-			k+=snprintf(&buff[k],105-k,"%ld,%ld,%d,%u",
-					_latitude,_longitude,_altitude,_sats);
-		else
-			k+=snprintf(&buff[k],105-k,",,,%u",
-					_sats);
-
-		k+=snprintf(&buff[k],105-k,",%u,%u",bv,uplink_counter);
-
-		uint16_t crc = calculate_crc16(&buff[7]);
-
-		k+=snprintf(&buff[k],15,"*%04X\n",crc);
-
-		buff[0] = 0x55;
-		buff[1] = 0xAA;
-		buff[2] = 0x55;
-		buff[3] = 0x80;
-		buff[4] = 0x80;
-
-		//if (payload_counter == 4){
-		//	while(1);}
 
 		//WDT reset
 		IWDG_KR = 0xAAAA;
 
-		if ((payload_counter & 0x3) == 0x3)  //rtty
+		if (0)//(payload_counter & 0x3) == 0x3)  //rtty
 		{
+			process_packet(buff,100,2);
+
 			radio_sleep();
 			_delay_ms(10);
 			radio_high_power();
@@ -456,6 +451,8 @@ int main(void)
 		}
 		else   //lora
 		{
+			k=process_packet(buff,100,0);
+
 			radio_sleep();
 			_delay_ms(10);
 			radio_write_lora_config(&s_lora);
@@ -464,19 +461,12 @@ int main(void)
 			radio_high_power();
 			radio_set_frequency_frreg(FREQ_434_100);
 
-
-
-			radio_tx_packet(&buff[5],k-5);
-			//_delay_ms(12500);
-
+			radio_tx_packet((uint8_t*)(&buff[0]),k);
 
 			_delay_ms(200);
 
-
 			while(lora_in_progress())
 				_delay_ms(50);
-
-
 		}
 
 #ifdef UPLINK
@@ -508,8 +498,8 @@ int main(void)
 					stat = radio_read_single_reg(REG_MODEM_STAT);
 					stat = radio_read_single_reg(REG_MODEM_STAT);
 					irq = radio_read_single_reg(REG_IRQ_FLAGS);
-					uint8_t nb = radio_read_single_reg(REG_RX_NB_BYTES);
-					uint8_t hrx = radio_read_single_reg(REG_RX_HEADER_CNT_VALUE_LSB);
+					//uint8_t nb = radio_read_single_reg(REG_RX_NB_BYTES);
+					//uint8_t hrx = radio_read_single_reg(REG_RX_HEADER_CNT_VALUE_LSB);
 
 					int32_t ui_offset = radio_read_single_reg(REG_FEI_MSB_LORA) << 8;
 					ui_offset = (ui_offset | radio_read_single_reg(REG_FEI_MID_LORA)) << 8;
@@ -518,11 +508,11 @@ int main(void)
 					if (ui_offset & 0x080000)
 						ui_offset |= 0xFFF00000;
 
-					snprintf(buff,60,"stat: %X  irq: %X headers rx: %X nBytes: %d offset: %li\r\n",stat,irq,hrx,nb,ui_offset);
+					/*snprintf(buff,60,"stat: %X  irq: %X headers rx: %X nBytes: %d offset: %li\r\n",stat,irq,hrx,nb,ui_offset);
 					i=0;
 					while (buff[i])
 						usart_send_blocking(USART1, buff[i++]);
-
+*/
 					if (irq & (1<<6))
 					{
 						count = 0;
@@ -685,6 +675,114 @@ int main(void)
 
     }
     */
+}
+
+
+//returns length written
+//format - 0 = habpack
+//         1 = ascii
+//         2 = ascii & rtty
+uint16_t process_packet(char* buffer, uint16_t len, uint8_t format)
+{
+	nvic_disable_irq(NVIC_USART1_IRQ);
+	int32_t _latitude = latitude;
+	int32_t _longitude = longitude;
+	int32_t _altitude = altitude/1000;
+	uint8_t _hour = hour;
+	uint8_t _minute = minute;
+	uint8_t _second = second;
+	uint8_t _sats = sats;
+	gnss_status_updated = 0;
+	pos_updated = 0;
+	gnss_status_updated = 0;
+	nvic_enable_irq(NVIC_USART1_IRQ);
+
+	uint32_t bv = ADC1_DR;
+	bv = bv * 8;
+	bv = bv/100;
+	adc_start_conversion_regular(ADC1);
+	uint16_t k;
+
+	if ((format == 1) || (format == 2)){
+		k=0;
+		if  (format == 2)
+			k=snprintf(&buff[k],len,"xxxxx");
+#ifdef TESTING
+		k+=snprintf(&buff[k],len-k,"$$PAYLOAD,%u,",payload_counter++);
+#else
+		k+=snprintf(&buff[k],len-k,"$$SUSF,%u,",payload_counter++);
+#endif
+		if (time_valid)
+			k+=snprintf(&buff[k],len-k,"%02u:%02u:%02u,",
+					_hour,_minute,_second);
+		else
+			k+=snprintf(&buff[k],len-k,",");
+
+		if (pos_valid)
+			k+=snprintf(&buff[k],len-k,"%ld,%ld,%d,%u",
+					_latitude,_longitude,_altitude,_sats);
+		else
+			k+=snprintf(&buff[k],len-k,",,,%u",
+					_sats);
+
+		k+=snprintf(&buff[k],len-k,",%u,%u",bv,uplink_counter);
+
+		uint16_t crc;
+
+		if (format == 2){
+			buff[0] = 0x55;
+			buff[1] = 0xAA;
+			buff[2] = 0x55;
+			buff[3] = 0x80;
+			buff[4] = 0x80;
+			crc = calculate_crc16(&buff[7]);
+		}
+		else
+			crc = calculate_crc16(&buff[2]);
+
+		k+=snprintf(&buff[k],15,"*%04X\n",crc);
+	}
+	else
+	{
+		memset((void*)buff,0,len);
+		hb_buf_ptr = 0;
+
+		cmp_ctx_t cmp;
+		hb_buf_ptr = 0;
+		cmp_init(&cmp, (void*)buff, file_reader, file_writer);
+
+
+		cmp_write_map(&cmp, 7);
+
+
+		cmp_write_uint(&cmp, 0);
+		cmp_write_str(&cmp, "PAYLOAD", 7);
+
+		cmp_write_uint(&cmp, 1);
+		cmp_write_uint(&cmp, payload_counter++);
+
+		cmp_write_uint(&cmp, 2);
+		cmp_write_uint(&cmp, (uint32_t)_hour*(3600) + (uint32_t)_minute*60 + (uint32_t)_second);
+
+		cmp_write_uint(&cmp, 3);
+		cmp_write_array(&cmp, 3);
+		cmp_write_sint(&cmp, _latitude);
+		cmp_write_sint(&cmp, _longitude);
+		cmp_write_sint(&cmp, _altitude);
+
+		cmp_write_uint(&cmp, 4);
+		cmp_write_uint(&cmp, _sats);
+
+		cmp_write_uint(&cmp, 40);
+		cmp_write_uint(&cmp, bv);
+
+		cmp_write_uint(&cmp, 50);
+		cmp_write_uint(&cmp, uplink_counter);
+
+		return hb_buf_ptr;
+	}
+
+	return k;
 }
 
 uint16_t crc_xmodem_update (uint16_t crc, uint8_t data)
