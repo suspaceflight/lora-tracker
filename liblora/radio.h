@@ -1,3 +1,8 @@
+// Hack for old locm3
+#ifndef SPI1_BASE
+#define SPI1_BASE SPI1_I2S1_BASE
+#endif
+
 typedef struct radio_lora_settings_s
 {
 	uint8_t spreading_factor;
