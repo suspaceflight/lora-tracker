@@ -3,6 +3,111 @@
 #include <libopencm3/stm32/rcc.h>
 #include "telem_parser.h"
 
+#include "cmp.h"
+
+uint8_t hb_buf_ptr = 0;
+uint16_t hb_ptr_max = 20;
+//static bool read_bytes(void *data, size_t sz, FILE *fh) {
+//    return fread(data, sizeof(uint8_t), sz, fh) == (sz * sizeof(uint8_t));
+//}
+
+static bool file_reader(cmp_ctx_t *ctx, void *data, size_t limit) {
+    if (hb_buf_ptr + limit >= hb_ptr_max)
+    	return 0;
+	data = ctx->buf+hb_buf_ptr;
+	hb_buf_ptr += limit;
+	return 1;
+	//return read_bytes(data, limit, (FILE *)ctx->buf);
+}
+
+static size_t file_writer(cmp_ctx_t *ctx, const void *data, size_t count) {
+
+	uint16_t i;
+	//if (hb_buf_ptr+count > HB_BUF_LEN)
+	//	return -1;
+
+	for (i = 0; i < count; i++)
+	{
+		((char*)ctx->buf)[hb_buf_ptr] = *((uint8_t*)data);
+		data++;
+		hb_buf_ptr++;
+	}
+	return count;
+    //return fwrite(data, sizeof(uint8_t), count, (FILE *)ctx->buf);
+}
+
+/////////////////
+
+
+uint8_t parse_habpack(char *buff, uint16_t max_in_len, char *call, uint32_t *seq,
+		uint32_t *time, int32_t *lati, int32_t *longi, int32_t *alt, uint8_t max_out_len)
+{
+	cmp_ctx_t cmp;
+	uint32_t map_size;
+	uint32_t array_size;
+	uint32_t map_id;
+	uint32_t i;
+	uint8_t out = 0;
+	cmp_object_t obj;
+
+
+	cmp_init(&cmp, (void*)buff, file_reader, file_writer);
+	hb_buf_ptr = 0;
+	hb_ptr_max = max_in_len;
+
+	//check we have a map
+	if (!cmp_read_map(&cmp, &map_size))
+	        return out;
+
+	for (i=0; i < map_size; i++)
+	{
+		if (!(cmp_read_uinteger(&cmp, &map_id)))
+			return out;
+
+		switch(map_id){
+			case 0: //callsign
+				if (!cmp_read_str(&cmp, call, max_out_len))
+				        return out;
+				break;
+			case 1: //count
+				if (!(cmp_read_uinteger(&cmp, seq)))
+					return out;
+				break;
+			case 2: //time
+				if (!(cmp_read_uinteger(&cmp, time)))
+					return out;
+				out |= (1<<1);
+				break;
+			case 3: //position
+				if (!cmp_read_array(&cmp, &array_size))
+					return out;
+				if (array_size != 3)
+					return out;
+				if (!(cmp_read_sinteger(&cmp, lati)))
+					return out;
+				out |= (1<<2);
+				if (!(cmp_read_sinteger(&cmp, longi)))
+					return out;
+				out |= (1<<3);
+				if (!(cmp_read_sinteger(&cmp, alt)))
+					return out;
+				out |= (1<<4);
+				break;
+			//case 4: //satellites
+			//	break;
+			//case 5: //lock type
+			//	break;
+			default:
+				if (!cmp_read_object(&cmp, &obj))
+					return out;
+				//TODO: if string type, step through string
+				break;
+		}
+
+	}
+
+	return out;
+}
 
 //returns:
 //bit0 - parsed complete
@@ -10,6 +115,7 @@
 //bit2 - valid lat
 //bit3 - valid long
 //bit4 - altitude
+
 uint8_t parse_ascii(char *buff, uint16_t max_in_len, char *call, uint32_t *seq,
 		uint32_t *time, char *lati, char *longi, int32_t *alt, uint8_t max_out_len)
 {
