@@ -12,10 +12,17 @@ uint16_t hb_ptr_max = 20;
 //}
 
 static bool file_reader(cmp_ctx_t *ctx, void *data, size_t limit) {
-    if (hb_buf_ptr + limit >= hb_ptr_max)
+	if (hb_buf_ptr + limit >= hb_ptr_max)
     	return 0;
-	data = ctx->buf+hb_buf_ptr;
-	hb_buf_ptr += limit;
+	uint32_t i = 0;
+	for(i = 0; i < limit; i++){
+		*(uint8_t *)data = ((uint8_t *)(ctx->buf))[hb_buf_ptr];
+		data++;
+		hb_buf_ptr++;
+	}
+
+	//data = ctx->buf+hb_buf_ptr;
+	//hb_buf_ptr += limit;
 	return 1;
 	//return read_bytes(data, limit, (FILE *)ctx->buf);
 }
@@ -66,7 +73,7 @@ uint8_t parse_habpack(char *buff, uint16_t max_in_len, char *call, uint32_t *seq
 
 		switch(map_id){
 			case 0: //callsign
-				if (!cmp_read_str(&cmp, call, max_out_len))
+				if (!cmp_read_str(&cmp, call, (uint32_t*)(&max_out_len)))
 				        return out;
 				break;
 			case 1: //count
