@@ -1,0 +1,595 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dependencies>
+   <includePath signature="/I..\..\..\..\..\Users\Matt\git\lora-tracker\liblora /I..\..\..\..\..\Users\Matt\git\cmp /I..\..\..\..\..\Users\Matt\git\lora-tracker\firmware-basestation\libopencm3-usb\include /I..\..\..\..\..\Users\Matt\git\lora-tracker\firmware-basestation /I..\..\..\..\..\Users\Matt\git\lora-tracker\firmware-tracker /I..\..\..\..\..\Users\Matt\git\lora-tracker /I..\..\..\..\..\Users\Matt\git">
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f1\nvic.h" lastModified="14953f3c120">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\nvic.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f2\pwr.h" lastModified="1495400fd48">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\pwr_common_all.h"/>
+      </source>
+      <source file="..\..\..\..\..\cmp\cmp.c" lastModified="1463534ada3">
+         <include file="..\..\..\..\..\cmp\cmp.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\exti.h" lastModified="1495400fcac">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\common.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\memorymap.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f0\exti.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f1\exti.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f2\exti.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f3\exti.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f4\exti.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\l1\exti.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f3\pwr.h" lastModified="1495400fd87">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\pwr_common_all.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f0\iwdg.h" lastModified="1495400fcdb">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\iwdg_common_all.h"/>
+      </source>
+      <source file="..\..\..\telem_parser.h" lastModified="14b2d3e2d5e">
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\flash_common_f24.h" lastModified="1495400fc5e">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\flash_common_f234.h"/>
+      </source>
+      <source file="..\..\..\telem_parser.c" lastModified="14b2d901b66">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\rcc.h"/>
+         <include file="..\..\..\telem_parser.h"/>
+         <include file="..\..\..\..\..\cmp\cmp.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\sam\3n\nvic.h" lastModified="14953f3c120">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\nvic.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f0\flash.h" lastModified="1495400fccb">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\flash_common_f01.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\lpc43xx\m4\nvic.h" lastModified="14953f3c120">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\nvic.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f2\gpio.h" lastModified="1495400fd39">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\gpio_common_f24.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f0\pwr.h" lastModified="1495400fcdb">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\pwr_common_all.h"/>
+      </source>
+      <source file="..\..\..\delay.h" lastModified="14a9ce4362f">
+      </source>
+      <source file="..\..\..\delay.c" lastModified="14a9ce0cf60">
+         <include file="..\..\..\delay.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\l1\spi.h" lastModified="1495400fe52">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\spi_common_l1f124.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f3\exti.h" lastModified="1495400fd77">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\exti_common_all.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\sam\3a\nvic.h" lastModified="14953f3c120">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\nvic.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\l1\usart.h" lastModified="1495400fe52">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\usart_common_f124.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f2\timer.h" lastModified="1495400fd58">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\timer_common_f24.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\i2c_common_all.h" lastModified="1495400fc6e">
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\flash_common_f01.h" lastModified="1495400fc4e">
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\sam\3u\nvic.h" lastModified="14953f3c120">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\nvic.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f3\usart.h" lastModified="1495400fd96">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\usart_common_all.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f4\memorymap.h" lastModified="1495400fdc5">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\memorymap.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f0\exti.h" lastModified="1495400fccb">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\exti_common_all.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f4\spi.h" lastModified="1495400fde5">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\spi_common_f24.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\cm3\memorymap.h" lastModified="1495400fae7">
+      </source>
+      <source file="..\..\..\radio_config.h" lastModified="14a2be2baee">
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\usart_common_f124.h" lastModified="1495400fc8d">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\usart_common_all.h"/>
+      </source>
+      <source file="..\..\..\bluetooth.h" lastModified="14ad49ae0f2">
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f1\memorymap.h" lastModified="1495400fd19">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\memorymap.h"/>
+      </source>
+      <source file="..\..\..\bluetooth.c" lastModified="14ad4a429d4">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\gpio.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\usart.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\rcc.h"/>
+         <include file="..\..\..\bluetooth.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f1\spi.h" lastModified="1495400fd29">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\spi_common_l1f124.h"/>
+      </source>
+      <source file="..\..\..\screen.h" lastModified="14a6d4fbea9">
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f0\usart.h" lastModified="1495400fceb">
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f2\spi.h" lastModified="1495400fd58">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\spi_common_f24.h"/>
+      </source>
+      <source file="..\..\..\screen.c" lastModified="14a9ccd1df9">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\gpio.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\i2c.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\rcc.h"/>
+         <include file="..\..\..\screen.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f3\spi.h" lastModified="1495400fd96">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\spi_common_f03.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\efm32\efm32lg\nvic.h" lastModified="14953f3c120">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\nvic.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\i2c.h" lastModified="14a31443d1d">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\common.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\memorymap.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f0\i2c.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f1\i2c.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f2\i2c.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f3\i2c.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f4\i2c.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\l1\i2c.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f4\iwdg.h" lastModified="1495400fdc5">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\iwdg_common_all.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\l1\iwdg.h" lastModified="1495400fe33">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\iwdg_common_all.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f0\spi.h" lastModified="1495400fceb">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\spi_common_f03.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f2\nvic.h" lastModified="14953f3c120">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\nvic.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\lm3s\nvic.h" lastModified="14953f3c120">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\nvic.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f1\iwdg.h" lastModified="1495400fd19">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\iwdg_common_all.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\iwdg_common_all.h" lastModified="1495400fc6e">
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\lpc17xx\nvic.h" lastModified="14953f3c120">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\nvic.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\rcc.h" lastModified="1495400fe62">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\common.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\memorymap.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f0\rcc.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f1\rcc.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f2\rcc.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f3\rcc.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f4\rcc.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\l1\rcc.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f4\flash.h" lastModified="1495400fdb6">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\flash_common_f24.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\adc.h" lastModified="1495400fc1f">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\common.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\memorymap.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f0\adc.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f1\adc.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f3\adc.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f4\adc.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\l1\adc.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\usart_common_f24.h" lastModified="1495400fc8d">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\usart_common_f124.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\gpio.h" lastModified="1495400fdf4">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\common.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\memorymap.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f0\gpio.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f1\gpio.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f2\gpio.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f3\gpio.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f4\gpio.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\l0\gpio.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\l1\gpio.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\spi_common_f24.h" lastModified="1495400fc7d">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\spi_common_l1f124.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f4\exti.h" lastModified="1495400fdb6">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\exti_common_all.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\flash_common_f234.h" lastModified="1495400fc4e">
+      </source>
+      <source file="..\..\..\..\firmware-tracker\main.h" lastModified="14ad4117a00">
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\adc_common_v1.h" lastModified="1495400fc2f">
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\l1\exti.h" lastModified="1495400fe13">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\exti_common_all.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f1\flash.h" lastModified="1495400fd0a">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\flash_common_f01.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\rcc_common_all.h" lastModified="1495400fc6e">
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\memorymap.h" lastModified="1495400fe52">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f0\memorymap.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f1\memorymap.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f2\memorymap.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f3\memorymap.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f4\memorymap.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\l0\memorymap.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\l1\memorymap.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\l1\timer.h" lastModified="1495400fe52">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\timer_common_all.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\spi_common_f03.h" lastModified="1495400fc7d">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\spi_common_all.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f3\gpio.h" lastModified="1495400fd77">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\gpio_common_f234.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f0\timer.h" lastModified="1495400fceb">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\timer_common_all.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f1\exti.h" lastModified="1495400fd0a">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\exti_common_all.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\l0\gpio.h" lastModified="1495400fe04">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\gpio_common_f24.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\gpio_common_f24.h" lastModified="1495400fc5e">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\gpio_common_f234.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\dma.h" lastModified="1495400fc9c">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\common.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\memorymap.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f0\dma.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f1\dma.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f2\dma.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f3\dma.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f4\dma.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\l1\dma.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f3\timer.h" lastModified="1495400fd96">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\timer_common_f24.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f1\usart.h" lastModified="1495400fd29">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\usart_common_f124.h"/>
+      </source>
+      <source file="..\..\..\syscalls.c" lastModified="1496d610183">
+      </source>
+      <source file="..\..\..\main.c" lastModified="14b2d447bea">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\nvic.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\rcc.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\gpio.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\spi.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\timer.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\adc.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\usart.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\dma.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\pwr.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\iwdg.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\i2c.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\exti.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\flash.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\systick.h"/>
+         <include file="..\..\..\..\liblora\radio.h"/>
+         <include file="..\..\..\screen.h"/>
+         <include file="..\..\..\bluetooth.h"/>
+         <include file="..\..\..\telem_parser.h"/>
+         <include file="..\..\..\..\firmware-tracker\main.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\timer_common_f24.h" lastModified="1495400fc8d">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\timer_common_all.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f2\memorymap.h" lastModified="1495400fd39">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\memorymap.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f4\usart.h" lastModified="1495400fde5">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\usart_common_f24.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f0\gpio.h" lastModified="1495400fccb">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\gpio_common_f24.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\dma_common_f24.h" lastModified="1495400fc3f">
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\flash.h" lastModified="1495400fde5">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\common.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\memorymap.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f0\flash.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f1\flash.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f2\flash.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f3\flash.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f4\flash.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\l1\flash.h"/>
+      </source>
+      <source file="..\..\..\..\liblora\radio.h" lastModified="14b2d42606e">
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\l1\i2c.h" lastModified="1495400fe23">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\i2c_common_all.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\l0\memorymap.h" lastModified="1495400fe04">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\memorymap.h"/>
+      </source>
+      <source file="..\..\..\..\liblora\radio.c" lastModified="14a96cda302">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\gpio.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\spi.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\rcc.h"/>
+         <include file="..\..\..\radio_config.h"/>
+         <include file="..\..\..\..\liblora\radio.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\gpio_common_f234.h" lastModified="1495400fc5e">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\gpio_common_all.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\sam\3s\nvic.h" lastModified="14953f3c120">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\nvic.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f3\nvic.h" lastModified="14953f3c120">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\nvic.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\pwr.h" lastModified="1495400fe62">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\common.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\memorymap.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f0\pwr.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f1\pwr.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f2\pwr.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f3\pwr.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f4\pwr.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\l1\pwr.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f2\iwdg.h" lastModified="1495400fd39">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\iwdg_common_all.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\cm3\common.h" lastModified="149540102a7">
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\dma_common_l1f013.h" lastModified="1495400fc4e">
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f4\i2c.h" lastModified="1495400fdc5">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\i2c_common_f24.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\l1\rcc.h" lastModified="1495400fe42">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\pwr.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\rcc_common_all.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\l1\adc.h" lastModified="1495400fe04">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\adc_common_v1.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\efm32\efm32gg\nvic.h" lastModified="14953f3c120">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\nvic.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f1\i2c.h" lastModified="1495400fd19">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\i2c_common_all.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\i2c_common_f24.h" lastModified="1495400fc6e">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\i2c_common_all.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f2\i2c.h" lastModified="1495400fd39">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\i2c_common_f24.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\cm3\nvic.h" lastModified="1495400faf7">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\common.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\memorymap.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\dispatch\nvic.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\l0\nvic.h" lastModified="14953f3c120">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\nvic.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f3\i2c.h" lastModified="1495400fd77">
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f4\rcc.h" lastModified="1495400fdd5">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\rcc_common_all.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\usart.h" lastModified="1495400fe81">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\common.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\memorymap.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f0\usart.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f1\usart.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f2\usart.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f3\usart.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f4\usart.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\l1\usart.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f4\adc.h" lastModified="1495400fda6">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\adc_common_v1.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f4\gpio.h" lastModified="1495400fdb6">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\gpio_common_f24.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f0\nvic.h" lastModified="14953f3c120">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\nvic.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\pwr_common_all.h" lastModified="1495400fc6e">
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f0\i2c.h" lastModified="14a3144c67b">
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f2\exti.h" lastModified="1495400fd39">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\exti_common_all.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\l1\gpio.h" lastModified="1495400fe23">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\gpio_common_all.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\vf6xx\nvic.h" lastModified="14953f3c120">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\nvic.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f1\rcc.h" lastModified="1495400fd29">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\rcc_common_all.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f2\flash.h" lastModified="1495400fd39">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\flash_common_f24.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f1\adc.h" lastModified="1495400fcfa">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\adc_common_v1.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f2\rcc.h" lastModified="1495400fd48">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\rcc_common_all.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\l1\dma.h" lastModified="1495400fe04">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\dma_common_l1f013.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f3\rcc.h" lastModified="1495400fd96">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\rcc_common_all.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f3\adc.h" lastModified="1495400fd68">
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f1\gpio.h" lastModified="1495400fd19">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\gpio_common_all.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f1\timer.h" lastModified="1495400fd29">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\timer_common_all.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f4\timer.h" lastModified="1495400fde5">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\timer_common_f24.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\spi.h" lastModified="1495400fe71">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\common.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\memorymap.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f0\spi.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f1\spi.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f2\spi.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f3\spi.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f4\spi.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\l1\spi.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f0\rcc.h" lastModified="14954015cfc">
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\usart_common_all.h" lastModified="1495400fc8d">
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f2\usart.h" lastModified="1495400fd58">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\usart_common_f24.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f0\adc.h" lastModified="1495400fcac">
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\spi_common_l1f124.h" lastModified="1495400fc7d">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\spi_common_all.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f4\dma.h" lastModified="1495400fda6">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\dma_common_f24.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\spi_common_all.h" lastModified="1495400fc7d">
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\l1\memorymap.h" lastModified="1495400fe42">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\memorymap.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\lpc43xx\m0\nvic.h" lastModified="14953f3c120">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\nvic.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f3\memorymap.h" lastModified="1495400fd87">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\memorymap.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f1\dma.h" lastModified="1495400fcfa">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\dma_common_l1f013.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\efm32\efm32tg\nvic.h" lastModified="14953f3c120">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\nvic.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\lpc13xx\nvic.h" lastModified="14953f3c120">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\nvic.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\l1\pwr.h" lastModified="1495400fe42">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\pwr_common_all.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\iwdg.h" lastModified="1495400fdf4">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\common.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\memorymap.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f0\iwdg.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f1\iwdg.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f2\iwdg.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f3\iwdg.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f4\iwdg.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\l1\iwdg.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f2\dma.h" lastModified="1495400fd39">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\dma_common_f24.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f3\dma.h" lastModified="1495400fd68">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\dma_common_l1f013.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\dispatch\nvic.h" lastModified="1495400fb16">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f0\nvic.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f1\nvic.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f2\nvic.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f3\nvic.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f4\nvic.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\l0\nvic.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\l1\nvic.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\efm32\efm32tg\nvic.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\efm32\efm32g\nvic.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\efm32\efm32lg\nvic.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\efm32\efm32gg\nvic.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\lpc13xx\nvic.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\lpc17xx\nvic.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\lpc43xx\m4\nvic.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\lpc43xx\m0\nvic.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\sam\3a\nvic.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\sam\3n\nvic.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\sam\3s\nvic.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\sam\3u\nvic.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\sam\3x\nvic.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\lm3s\nvic.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\vf6xx\nvic.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f0\memorymap.h" lastModified="1495400fcdb">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\memorymap.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\gpio_common_all.h" lastModified="1495400fc5e">
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\exti_common_all.h" lastModified="1495400fc4e">
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f0\dma.h" lastModified="1495400fcbc">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\dma_common_l1f013.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\efm32\efm32g\nvic.h" lastModified="14953f3c120">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\nvic.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f4\nvic.h" lastModified="14953f3c120">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\nvic.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\l1\flash.h" lastModified="1495400fe13">
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f4\pwr.h" lastModified="1495400fdd5">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\pwr_common_all.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\l1\nvic.h" lastModified="14953f3c120">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\nvic.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\timer_common_all.h" lastModified="1495400fc7d">
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\cm3\systick.h" lastModified="1495400fb06">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\memorymap.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\common.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f3\iwdg.h" lastModified="1495400fd87">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\iwdg_common_all.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f3\flash.h" lastModified="1495400fd77">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\flash_common_f234.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\sam\3x\nvic.h" lastModified="14953f3c120">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\nvic.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\timer.h" lastModified="1495400fe71">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\cm3\common.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\memorymap.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f0\timer.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f1\timer.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f2\timer.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f3\timer.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f4\timer.h"/>
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\l1\timer.h"/>
+      </source>
+      <source file="..\..\..\libopencm3-usb\include\libopencm3\stm32\f1\pwr.h" lastModified="1495400fd19">
+         <include file="..\..\..\libopencm3-usb\include\libopencm3\stm32\common\pwr_common_all.h"/>
+      </source>
+      <source file="..\..\..\..\..\cmp\cmp.h" lastModified="14635b3fb55">
+      </source>
+   </includePath>
+</dependencies>

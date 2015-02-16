@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<history>
+   <processor signature="4.8.3 -mcpu=cortex-m0 -mthumb -g -nostartfiles -Map=lora-basestation.map -O0 --gc-sections --specs=nano.specs -LC:/Users/Matt/git/lora-tracker/firmware-basestation -TC:/Users/Matt/git/lora-tracker/firmware-basestation/stm32f0-discovery.ld -g -L..\..\..\libopencm3-usb\lib -lopencm3_stm32f0">
+      <target file="lora-basestation.elf" lastModified="14b32f1d318">
+         <source file="..\..\..\libopencm3-usb\lib\libopencm3_stm32f0.a" lastModified="14953f3c8f0"/>
+         <source file="..\obj\bluetooth.o" lastModified="14b2d7fd0b9"/>
+         <source file="..\obj\cmp.o" lastModified="14b2d7fd2ba"/>
+         <source file="..\obj\delay.o" lastModified="14b2d7fd2f9"/>
+         <source file="..\obj\telem_parser.o" lastModified="14b2d901c1d"/>
+         <source file="..\obj\main.o" lastModified="14b2d7fd85e"/>
+         <source file="..\obj\radio.o" lastModified="14b2d7fd951"/>
+         <source file="..\obj\screen.o" lastModified="14b2d7fda01"/>
+         <source file="..\obj\syscalls.o" lastModified="14b2d7fda7d"/>
+      </target>
+   </processor>
+</history>

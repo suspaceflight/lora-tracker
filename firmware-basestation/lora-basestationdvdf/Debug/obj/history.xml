@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<history>
+   <processor signature="arm-none-eabi-gcc 4.9.0 x86_64-w64-mingw32 -mcpu=cortex-m0 -mthumb -Wall -ffunction-sections -g -O0 -c -DSTM32F0 -DSTM32F072C8 -I..\..\..\..\..\Users\Matt\git\lora-tracker\liblora -I..\..\..\..\..\Users\Matt\git\cmp -I..\..\..\..\..\Users\Matt\git\lora-tracker\firmware-basestation\libopencm3-usb\include -I..\..\..\..\..\Users\Matt\git\lora-tracker\firmware-basestation -I..\..\..\..\..\Users\Matt\git\lora-tracker\firmware-tracker -I..\..\..\..\..\Users\Matt\git\lora-tracker -I..\..\..\..\..\Users\Matt\git">
+      <target file="screen.o" lastModified="14b2d7fda01">
+         <source file="..\..\..\screen.c" lastModified="14a9ccd1df9"/>
+      </target>
+      <target file="bluetooth.o" lastModified="14b2d7fd0b9">
+         <source file="..\..\..\bluetooth.c" lastModified="14ad4a425ec"/>
+      </target>
+      <target file="delay.o" lastModified="14b2d7fd2f9">
+         <source file="..\..\..\delay.c" lastModified="14a9ce0cf60"/>
+      </target>
+      <target file="radio.o" lastModified="14b2d7fd951">
+         <source file="..\..\..\..\liblora\radio.c" lastModified="14a96cda302"/>
+      </target>
+      <target file="cmp.o" lastModified="14b2d7fd2ba">
+         <source file="..\..\..\..\..\cmp\cmp.c" lastModified="1463534a1eb"/>
+      </target>
+      <target file="main.o" lastModified="14b2d7fd85e">
+         <source file="..\..\..\main.c" lastModified="14b2d44741a"/>
+      </target>
+      <target file="syscalls.o" lastModified="14b2d7fda7d">
+         <source file="..\..\..\syscalls.c" lastModified="1496d60f1e3"/>
+      </target>
+      <target file="telem_parser.o" lastModified="14b2d901c1d">
+         <source file="..\..\..\telem_parser.c" lastModified="14b2d901396"/>
+      </target>
+   </processor>
+</history>

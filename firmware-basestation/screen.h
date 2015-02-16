@@ -26,6 +26,8 @@ void screen_write_i2c(uint32_t i2c, uint8_t i2c_addr, uint8_t size, uint8_t *dat
 void screen_test(void);
 void screen_write_text(char *text, uint8_t position);
 void screen_clear_row(uint8_t row);
+void screen_add_cc(const uint8_t *data, uint8_t slot);
+void screen_write_char(char character, uint8_t position);
 
 #define ROW_TOP 0
 #define ROW_BOT 0x40

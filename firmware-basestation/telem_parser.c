@@ -52,11 +52,12 @@ uint8_t parse_habpack(char *buff, uint16_t max_in_len, char *call, uint32_t *seq
 	cmp_ctx_t cmp;
 	uint32_t map_size;
 	uint32_t array_size;
-	uint32_t map_id;
+	uint64_t map_id;
 	uint32_t i;
 	uint8_t out = 0;
 	cmp_object_t obj;
-
+	uint64_t tu64;
+	int64_t ts64;
 
 	cmp_init(&cmp, (void*)buff, file_reader, file_writer);
 	hb_buf_ptr = 0;
@@ -73,31 +74,37 @@ uint8_t parse_habpack(char *buff, uint16_t max_in_len, char *call, uint32_t *seq
 
 		switch(map_id){
 			case 0: //callsign
-				if (!cmp_read_str(&cmp, call, (uint32_t*)(&max_out_len)))
+				//tu64 = max_out_len;
+				if (!cmp_read_str(&cmp, call, (uint32_t *)(&max_out_len)))
 				        return out;
 				break;
 			case 1: //count
-				if (!(cmp_read_uinteger(&cmp, seq)))
+				if (!(cmp_read_uinteger(&cmp, &tu64)))
 					return out;
+				*seq = (uint32_t)tu64;
 				break;
 			case 2: //time
-				if (!(cmp_read_uinteger(&cmp, time)))
+				if (!(cmp_read_uinteger(&cmp, &tu64)))
 					return out;
 				out |= (1<<1);
+				*time = (uint32_t)tu64;
 				break;
 			case 3: //position
 				if (!cmp_read_array(&cmp, &array_size))
 					return out;
 				if (array_size != 3)
 					return out;
-				if (!(cmp_read_sinteger(&cmp, lati)))
+				if (!(cmp_read_sinteger(&cmp, &ts64)))
 					return out;
+				*lati = (int32_t)ts64;
 				out |= (1<<2);
-				if (!(cmp_read_sinteger(&cmp, longi)))
+				if (!(cmp_read_sinteger(&cmp, &ts64)))
 					return out;
+				*longi = (int32_t)ts64;
 				out |= (1<<3);
-				if (!(cmp_read_sinteger(&cmp, alt)))
+				if (!(cmp_read_sinteger(&cmp, &ts64)))
 					return out;
+				*alt = (int32_t)ts64;
 				out |= (1<<4);
 				break;
 			//case 4: //satellites
@@ -113,7 +120,7 @@ uint8_t parse_habpack(char *buff, uint16_t max_in_len, char *call, uint32_t *seq
 
 	}
 
-	return out;
+	return out | 1;
 }
 
 //returns:

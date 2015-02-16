@@ -27,6 +27,12 @@ void uart_send_blocking_len(uint8_t *buff, uint16_t len);
 uint16_t calculate_crc16 (char *input);
 uint16_t process_packet(char* buffer, uint16_t len, uint8_t format);
 
+#define TOTAL_SENTENCES 8
+#define RTTY_SENTENCE 0xFF
+static const uint8_t sentences_coding[] =    {CODING_4_8,      CODING_4_6,      CODING_4_8,      CODING_4_5,      CODING_4_6,      CODING_4_8,     CODING_4_5,     0};
+static const uint8_t sentences_spreading[] = {11,              8 ,              11,              8,               8,               11,             7,              0};
+static const uint8_t sentences_bandwidth[] = {BANDWIDTH_20_8K, BANDWIDTH_20_8K, BANDWIDTH_41_7K, BANDWIDTH_41_7K, BANDWIDTH_20_8K, BANDWIDTH_125K, BANDWIDTH_125K, RTTY_SENTENCE};
+static sentence_counter = 0;
 
 char buff[128] = {0};
 
@@ -318,7 +324,7 @@ int main(void)
 #endif
 
  	radio_lora_settings_t s_lora;
- 	s_lora.spreading_factor = 12;
+ 	s_lora.spreading_factor = 11;
 	s_lora.bandwidth = BANDWIDTH_20_8K;
 	s_lora.coding_rate = CODING_4_8;
 	s_lora.implicit_mode = 0;
@@ -328,7 +334,7 @@ int main(void)
 	_delay_ms(100);
 
  	radio_init();
-
+ 	uint8_t uplink_en = 1;
 
 #ifdef LORA_RX
  	radio_write_lora_config(&s_lora);
@@ -434,7 +440,12 @@ int main(void)
 		//WDT reset
 		IWDG_KR = 0xAAAA;
 
-		if (0)//(payload_counter & 0x3) == 0x3)  //rtty
+		sentence_counter++;
+		if (sentence_counter >= TOTAL_SENTENCES)
+			sentence_counter = 0;
+
+		uplink_en = 0;
+		if (sentences_bandwidth[sentence_counter] == RTTY_SENTENCE)//(payload_counter & 0x3) == 0x3)  //rtty
 		{
 			process_packet(buff,100,2);
 
@@ -451,7 +462,17 @@ int main(void)
 		}
 		else   //lora
 		{
-			k=process_packet(buff,100,0);
+			s_lora.spreading_factor = sentences_spreading[sentence_counter];
+			s_lora.bandwidth = sentences_bandwidth[sentence_counter];
+			s_lora.coding_rate = sentences_coding[sentence_counter];
+			s_lora.implicit_mode = 0;
+			s_lora.crc_en = 1;
+			s_lora.low_datarate = 1;    //todo: this
+
+			if (s_lora.bandwidth != BANDWIDTH_125K)
+				uplink_en = 1;
+
+			k=process_packet(buff,100,1);
 
 			radio_sleep();
 			_delay_ms(10);
@@ -470,10 +491,8 @@ int main(void)
 		}
 
 #ifdef UPLINK
-		uint8_t uplink_en = 1;
-		int i;
 
-		if (uplink_en && !((payload_counter & 0x3) == 0x3))
+		if (uplink_en)// && !((payload_counter & 0x3) == 0x3))
 		{
 			radio_sleep();
 			s_lora.bandwidth = BANDWIDTH_62_5K;
@@ -486,19 +505,17 @@ int main(void)
 			radio_set_continuous_rx();
 			GPIOB_ODR = 0;
 			//see if we get a header
-			_delay_ms(1200);
+			_delay_ms(300);
 			uint8_t stat = radio_read_single_reg(REG_MODEM_STAT);
 			if (stat & (1<<0))
 			{
 				//wait for packet
-				uint8_t count = 50;
+				uint8_t count = 100;
+				_delay_ms(300);
 				while(count){
-					_delay_ms(100);
+					_delay_ms(40);
 					uint8_t irq = radio_read_single_reg(REG_IRQ_FLAGS);
-					stat = radio_read_single_reg(REG_MODEM_STAT);
-					stat = radio_read_single_reg(REG_MODEM_STAT);
-					irq = radio_read_single_reg(REG_IRQ_FLAGS);
-					//uint8_t nb = radio_read_single_reg(REG_RX_NB_BYTES);
+/*					//uint8_t nb = radio_read_single_reg(REG_RX_NB_BYTES);
 					//uint8_t hrx = radio_read_single_reg(REG_RX_HEADER_CNT_VALUE_LSB);
 
 					int32_t ui_offset = radio_read_single_reg(REG_FEI_MSB_LORA) << 8;
@@ -508,7 +525,7 @@ int main(void)
 					if (ui_offset & 0x080000)
 						ui_offset |= 0xFFF00000;
 
-					/*snprintf(buff,60,"stat: %X  irq: %X headers rx: %X nBytes: %d offset: %li\r\n",stat,irq,hrx,nb,ui_offset);
+					snprintf(buff,60,"stat: %X  irq: %X headers rx: %X nBytes: %d offset: %li\r\n",stat,irq,hrx,nb,ui_offset);
 					i=0;
 					while (buff[i])
 						usart_send_blocking(USART1, buff[i++]);
@@ -526,157 +543,24 @@ int main(void)
 			GPIOB_ODR = (1<<1);
 			radio_sleep();
 			_delay_ms(10);
-			s_lora.bandwidth = BANDWIDTH_20_8K;
-			radio_write_lora_config(&s_lora);
-			radio_set_frequency_frreg(FREQ_434_100);
+			//s_lora.bandwidth = BANDWIDTH_20_8K;
+			//radio_write_lora_config(&s_lora);
+			//radio_set_frequency_frreg(FREQ_434_100);
 
 			/*
 			radio_standby();
 			radio_high_power();
 			*/
 		}
+		else
+			_delay_ms(50);
+#else
+		_delay_ms(50);
 #endif
 
-		_delay_ms(500);
+
 	}
-
-/*
-
-
-
-	//radio_write_fsk_config(&s1);
-
-	//radio_fsk_set_fifo_threshold(20);
-
-	_delay_ms(100);
-
-	snprintf(buff,60,"xxxxxHELLOsygygghhghghghghgghghfsfd: %d     \r\n",7);
-	buff[0] = 0xFF;
-	buff[1] = 0xFF;
-	buff[2] = 0xFF;
-	buff[3] = 0x80;
-	buff[4] = 0x80;
-
-	while(1)
-	{}{
-		//uint16_t d = usart_recv_blocking;
-		//d++;
-	//}{
-		uint32_t r = USART1_ISR;
-		uint32_t busy = r & (1<<16);
-	//	uint32_t cha = USART1_RDR;
-
-		if (r & USART_ISR_RXNE)
-		{
-			uint16_t data = USART1_RDR;
-
-			//usart_send_blocking(USART1,'G');
-
-			//USART1_RQR = (1<<3);
-			data++;
-		}
-	}
-
-	while(1){
-
-
-		radio_start_tx_rtty((char*)buff,BAUD_50,4);
-
-		while(rtty_in_progress() != 0){
-			radio_rtty_poll_buffer_refill();
-		}
-
-		usart_send_blocking(USART1,'G');
-
-
-		_delay_ms(1000);
-	}
-
-	uint8_t r = radio_read_single_reg(REG_OP_MODE) & 0xF8;
-	radio_write_single_reg(REG_OP_MODE, r | MODE_TX);
-
-
-
-
-
-
-	buff[6] = 0xff;
-	buff[8] = 0xff;
-	buff[10] = 0xff;
-	buff[11] = 0xff;
-	buff[12] = 0xff;
-	buff[13] = 0xff;
-	buff[15] = 0xff;
-	buff[17] = 0xff;
-	buff[18] = 0xff;
-	buff[20] = 0xff;
-
-
-	buff[28] = 0xff;
-	buff[29] = 0xff;
-	buff[30] = 0xff;
-
-
-
-   	radio_write_burst_reg(0,buff,40);
-
-
-
-   	while(1){
-		if(radio_fsk_poll_fifo_level() == 0){
-			GPIOB_ODR = 0;
-			radio_write_burst_reg(0,buff,40);
-			GPIOB_ODR = (1<<1);
-		}
-   	}
-
-
-
-	while(1)
-	{
-		radio_write_burst_reg(0,buff,40);
-		_delay_ms(500);
-		radio_write_burst_reg(0,buff,40);
-		_delay_ms(500);
-	}
-
-
-	while(1);
-
-	///////////////////
-
-	radio_lora_settings_t s;
-	s.spreading_factor = 12;
-	s.bandwidth = BANDWIDTH_20_8K;
-	s.coding_rate = CODING_4_8;
-	s.implicit_mode = 0;
-	s.crc_en = 1;
-	s.low_datarate = 1;
-
-	_delay_ms(100);
-
-	radio_init();
-	radio_write_lora_config(&s);
-	radio_high_power();
-	radio_set_frequency(FREQ_434_100);
-
-	uint16_t i = 100;
-    while(1)
-    {
-    	GPIOB_ODR = 0;
-    	uint8_t v = radio_read_version();
-
-    	int8_t l = snprintf(buff,60,"HELLOsygygghhghghghghgghghfsfd: %d     \r\n",i);
-    	radio_tx_packet(buff,l);
-    	_delay_ms(12500);
-    	GPIOB_ODR = (1<<1);
-    	_delay_ms(500);
-    	i++;
-
-    }
-    */
 }
-
 
 //returns length written
 //format - 0 = habpack
@@ -706,7 +590,7 @@ uint16_t process_packet(char* buffer, uint16_t len, uint8_t format)
 	if ((format == 1) || (format == 2)){
 		k=0;
 		if  (format == 2)
-			k=snprintf(&buff[k],len,"xxxxx");
+			k=5;//snprintf(&buff[k],len,"xxxxx");
 #ifdef TESTING
 		k+=snprintf(&buff[k],len-k,"$$PAYLOAD,%u,",payload_counter++);
 #else
@@ -756,7 +640,11 @@ uint16_t process_packet(char* buffer, uint16_t len, uint8_t format)
 
 
 		cmp_write_uint(&cmp, 0);
+#ifdef TESTING
 		cmp_write_str(&cmp, "PAYLOAD", 7);
+#else
+		cmp_write_str(&cmp, "SUSF", 4);
+#endif
 
 		cmp_write_uint(&cmp, 1);
 		cmp_write_uint(&cmp, payload_counter++);

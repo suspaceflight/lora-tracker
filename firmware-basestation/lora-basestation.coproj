@@ -84,8 +84,8 @@
     <File name="bluetooth.c" path="bluetooth.c" type="1"/>
     <File name="bluetooth.h" path="bluetooth.h" type="1"/>
     <File name="delay.c" path="delay.c" type="1"/>
-    <File name="cmp.c" path="../../cmp/cmp.c" type="1"/>
     <File name="telem_parser.h" path="telem_parser.h" type="1"/>
+    <File name="cmp.c" path="../../cmp/cmp.c" type="1"/>
     <File name="main.c" path="main.c" type="1"/>
   </Files>
 </Project>

@@ -47,6 +47,18 @@ void screen_init(void)
 
 }
 
+void screen_write_char(char character, uint8_t position)
+{
+	if (op_in_progress)
+		return;
+	op_in_progress=1;
+	screen_write_i2c_start(I2C1,0x7C,4);
+	screen_write_i2c_next_byte(I2C1, S_CMDSEND | S_MULTIPLE);
+	screen_write_i2c_next_byte(I2C1, S_SET_DDRAM | position);
+	screen_write_i2c_next_byte(I2C1, S_DATASEND | S_MULTIPLE);
+	screen_write_i2c_next_byte(I2C1, character);
+	op_in_progress=0;
+}
 
 void screen_write_text(char *text, uint8_t position)
 {
@@ -108,6 +120,26 @@ void screen_on(void)
 void screen_clear_row(uint8_t row)
 {
 	screen_write_text("                ",row);
+}
+
+void screen_add_cc(const uint8_t *data, uint8_t slot)
+{
+	if (op_in_progress)
+		return;
+
+	uint8_t i;
+
+	op_in_progress=1;
+	screen_write_i2c_start(I2C1,0x7C,8*2+2);
+	screen_write_i2c_next_byte(I2C1, S_CMDSEND | S_MULTIPLE);
+	screen_write_i2c_next_byte(I2C1, S_SET_CGRAM | (slot << 3));
+
+	for (i = 0; i < 8; i++)
+	{
+		screen_write_i2c_next_byte(I2C1, S_DATASEND | S_MULTIPLE);
+		screen_write_i2c_next_byte(I2C1, data[i]);
+	}
+	op_in_progress=0;
 }
 
 void screen_test(void)

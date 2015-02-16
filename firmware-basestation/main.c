@@ -13,7 +13,7 @@
 #include <libopencm3/stm32/flash.h>
 #include <libopencm3/cm3/systick.h>
 #include <stdlib.h>
-
+#include <string.h>
 #include <stdio.h>
 
 #include "radio.h"
@@ -113,7 +113,12 @@ ui_menu_state_t ui_state = MENU_NONE;
 typedef enum {UP_PING, UP_CAL, UP_CUTDOWN} ui_uplink_msg_t;
 ui_uplink_msg_t ui_selected_uplink = UP_PING;
 
-
+static const uint8_t ui_icon_warning_arr[] = {0x1F,0x1B,0x1B,0x1B,0x1B,0x1F,0x1B,0x1F}; //1
+static const uint8_t ui_icon_tick_arr[] = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF}; //2
+static const uint8_t ui_icon_dot_arr[] = {0x00,0x0E,0x11,0x15,0x11,0x0E,0x00,0x00}; //3
+static const char ui_icon_warning = 1;
+static const char ui_icon_tick = 2;
+static const char ui_icon_dot = 3;
 
 
 void init(void);
@@ -648,6 +653,11 @@ int main(void)
 	backlight_on();
 	bluetooth_wakeup();
 
+
+	screen_add_cc(ui_icon_warning_arr, 1);
+	screen_add_cc(ui_icon_tick_arr, 2);
+	screen_add_cc(ui_icon_dot_arr, 3);
+
 	uint8_t r;
 /*
 	while(1)
@@ -711,10 +721,6 @@ int main(void)
 			preset_lock[1] = 1;
 		}
 	}
-
-
-
-
 
 	radio_write_lora_config((radio_lora_settings_t *)&s_lora);
 	radio_pa_off();
@@ -1067,7 +1073,19 @@ void process_packet(char *buff, uint16_t max_len)
 
 
 	if ((buff[0] & 0xF0) == 0x80){ //check for msgpack
-		ui_position_valid_flags = parse_habpack(buff, max_len, ui_payload, (uint32_t *)(&ui_sequence), &ui_time, ui_lati, ui_longi, &ui_alt, 10);
+		int32_t la,lo;
+		ui_position_valid_flags = parse_habpack(buff, max_len, ui_payload,
+				(uint32_t *)(&ui_sequence), &ui_time, &la, &lo, &ui_alt, 10);
+		if (la != 0) //TODO: change for sats field
+			snprintf(ui_lati,10,"%ld",la);
+		else
+			ui_position_valid_flags &= ~(1<<2);
+
+		if (lo != 0)
+			snprintf(ui_longi,10,"%ld",lo);
+		else
+			ui_position_valid_flags &= ~(1<<3);
+
 	}
 	else
 		ui_position_valid_flags = parse_ascii(buff, max_len, ui_payload, (uint32_t *)(&ui_sequence), &ui_time, ui_lati, ui_longi, &ui_alt, 10);
@@ -1395,6 +1413,8 @@ static void redraw_screen(void)
 					snprintf(buff,7,"%lu",(unsigned long)ui_sequence);
 					screen_write_text(buff,ROW_BOT);
 				}
+				if ((ui_position_valid_flags & (1<<1)) == 0)
+					screen_write_char(ui_icon_warning,ROW_BOT+7);
 				break;
 			case RSSI:
 				screen_write_text("RSSI: ",0);
@@ -1416,6 +1436,8 @@ static void redraw_screen(void)
 				//else
 				//	snprintf(buff,6,"%-m",(long)ui_alt);
 				screen_write_text(buff,ROW_BOT | 10);
+				if ((ui_position_valid_flags & ((1<<2)|(1<<3)|(1<<4))) != ((1<<2)|(1<<3)|(1<<4)))
+					screen_write_char(ui_icon_warning,ROW_TOP+15);
 				break;
 			case RADIO_STATUS:
 				screen_write_text("Radio Status:",0);
@@ -1465,7 +1487,7 @@ static void redraw_screen(void)
 					screen_write_text("Disabled",ROW_BOT);
 				break;
 			case MENU_UPLINK:
-				screen_write_text("M5 MENU_UPLINK",0);
+				screen_write_text("M5 Send Uplink",0);
 				if (ui_selected_uplink == UP_CAL)
 					screen_write_text("CALIBRATE",ROW_BOT);
 				if (ui_selected_uplink == UP_PING)
@@ -1474,7 +1496,7 @@ static void redraw_screen(void)
 					screen_write_text("CUTDOWN",ROW_BOT);
 				break;
 			default: //MENU_AUTOPING
-				screen_write_text("M6 MENU_AUTOPING",0);
+				screen_write_text("M6 Autoping",0);
 				if (auto_ping)
 					screen_write_text("Enabled",ROW_BOT);
 				else
@@ -1482,7 +1504,7 @@ static void redraw_screen(void)
 				break;
 		}
 		if (ui_state == MENU_OPTIONS_WRITE)
-			screen_write_text("#",ROW_BOT+15);
+			screen_write_char(ui_icon_dot,ROW_BOT+15);
 	}
 	else if (ui_state == MENU_PRESET){
 		gpio_set(LED_PST_PORT,LED_PST_PIN);
