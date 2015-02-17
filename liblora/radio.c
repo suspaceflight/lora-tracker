@@ -275,7 +275,7 @@ uint8_t rtty_in_progress(void)
 	else
 	{
 		uint8_t s = radio_read_single_reg(REG_IRQ_FLAGS2);
-		if (s & (1<<6))
+		if (s & (1<<6) || s & (1<<3))
 			return 0;
 		else
 			return 1;
