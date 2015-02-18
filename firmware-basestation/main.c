@@ -1760,6 +1760,8 @@ static void switch_to_tx(void)
 	//NEED TO SET/UNSET SHORT PACKET BIT?
 	radio_lora_settings_t temp = s_lora;
 	temp.bandwidth = BANDWIDTH_62_5K;
+	temp.spreading_factor = 12;
+	temp.coding_rate = CODING_4_7;
 	radio_sleep();
 	_delay_ms(10);
 	radio_set_frequency_frq(s_lora.frequency);
