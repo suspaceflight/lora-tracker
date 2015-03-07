@@ -15,11 +15,13 @@
 #include "radio.h"
 #include "cmp.h"
 
+#define RADIO_FREQ  FREQ_434_050
+
 #define ENABLE_GPS
 //#define LORA_RX
 #define UPLINK
 
-#define TESTING
+//#define TESTING
 
 void init(void);
 void _delay_ms(const uint32_t delay);
@@ -32,7 +34,7 @@ uint16_t process_packet(char* buffer, uint16_t len, uint8_t format);
 static const uint8_t sentences_coding[] =    {CODING_4_8,      CODING_4_6,      CODING_4_8,      CODING_4_5,      CODING_4_6,      CODING_4_8,     CODING_4_5,     0};
 static const uint8_t sentences_spreading[] = {11,              8 ,              11,              8,               8,               11,             7,              0};
 static const uint8_t sentences_bandwidth[] = {BANDWIDTH_20_8K, BANDWIDTH_20_8K, BANDWIDTH_41_7K, BANDWIDTH_41_7K, BANDWIDTH_20_8K, BANDWIDTH_125K, BANDWIDTH_125K, RTTY_SENTENCE};
-static sentence_counter = 0;
+static uint8_t sentence_counter = 0;
 
 char buff[128] = {0};
 
@@ -86,11 +88,13 @@ volatile uint8_t time_valid = 0;
 uint16_t payload_counter = 0;
 uint16_t uplink_counter = 0;
 
+
 ///////// msgpack stuff
 //#define HB_BUF_LEN 100
 //uint8_t hb_buf[HB_BUF_LEN] = {0};
 uint8_t hb_buf_ptr = 0;
 
+/*
 static bool read_bytes(void *data, size_t sz, FILE *fh) {
     return fread(data, sizeof(uint8_t), sz, fh) == (sz * sizeof(uint8_t));
 }
@@ -98,7 +102,7 @@ static bool read_bytes(void *data, size_t sz, FILE *fh) {
 static bool file_reader(cmp_ctx_t *ctx, void *data, size_t limit) {
     return read_bytes(data, limit, (FILE *)ctx->buf);
 }
-
+*/
 static size_t file_writer(cmp_ctx_t *ctx, const void *data, size_t count) {
 
 	uint16_t i;
@@ -158,7 +162,7 @@ void init (void)
 	rcc_clock_setup_in_hsi_out_8mhz();
 	rcc_periph_clock_enable(RCC_GPIOB);
 	rcc_periph_clock_enable(RCC_GPIOA);
-	gpio_mode_setup(GPIOB, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO1);
+
 
 
 	//adc
@@ -199,7 +203,7 @@ void init (void)
 
 	adc_start_conversion_regular(ADC1);
 
-	_delay_ms(200);
+//	_delay_ms(200);
 	uart_send_blocking_len((uint8_t*)flight_mode,44);
 	uart_send_blocking_len((uint8_t*)disable_nmea_gpgga,16);
 	uart_send_blocking_len((uint8_t*)disable_nmea_gpgll,16);
@@ -324,12 +328,6 @@ int main(void)
 #endif
 
  	radio_lora_settings_t s_lora;
- 	s_lora.spreading_factor = 11;
-	s_lora.bandwidth = BANDWIDTH_20_8K;
-	s_lora.coding_rate = CODING_4_8;
-	s_lora.implicit_mode = 0;
-	s_lora.crc_en = 1;
-	s_lora.low_datarate = 1;
 
 	_delay_ms(100);
 
@@ -392,7 +390,7 @@ int main(void)
 
 				radio_sleep();
 				_delay_ms(10);
-				radio_set_frequency_frreg(FREQ_434_100);
+				radio_set_frequency_frreg(RADIO_FREQ);
 				radio_write_lora_config(&s_lora);
 				radio_standby();
 				radio_high_power();
@@ -407,7 +405,7 @@ int main(void)
 				radio_standby();
 				radio_pa_off();
 				radio_lna_max();
-				radio_set_frequency_frreg(FREQ_434_100);
+				radio_set_frequency_frreg(RADIO_FREQ);
 				radio_set_continuous_rx();
 
 
@@ -421,9 +419,9 @@ int main(void)
 
 #endif
 
-
+	uart_send_blocking_len((uint8_t*)flight_mode,44);
  	radio_high_power();
-	radio_set_frequency_frreg(FREQ_434_100);
+	radio_set_frequency_frreg(RADIO_FREQ);
 
 	uint16_t k;
 
@@ -440,19 +438,27 @@ int main(void)
 		//WDT reset
 		IWDG_KR = 0xAAAA;
 
+		gpio_mode_setup(GPIOB, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO1);
+		if (pos_valid)
+			GPIOB_ODR = 0;
+		else
+			GPIOB_ODR = (1<<1);
+
 		sentence_counter++;
 		if (sentence_counter >= TOTAL_SENTENCES)
 			sentence_counter = 0;
+
+		radio_sleep();
+		_delay_ms(10);
 
 		uplink_en = 0;
 		if (sentences_bandwidth[sentence_counter] == RTTY_SENTENCE)//(payload_counter & 0x3) == 0x3)  //rtty
 		{
 			process_packet(buff,100,2);
 
-			radio_sleep();
-			_delay_ms(10);
 			radio_high_power();
 			radio_start_tx_rtty((char*)buff,BAUD_50,4);
+			gpio_mode_setup(GPIOB, GPIO_MODE_INPUT, GPIO_PUPD_NONE, GPIO1);  //turn off led
 			while(rtty_in_progress() != 0){
 				radio_rtty_poll_buffer_refill();
 				_delay_ms(20);
@@ -474,13 +480,14 @@ int main(void)
 
 			k=process_packet(buff,100,1);
 
-			radio_sleep();
-			_delay_ms(10);
+
 			radio_write_lora_config(&s_lora);
 
 			radio_standby();
 			radio_high_power();
-			radio_set_frequency_frreg(FREQ_434_100);
+			radio_set_frequency_frreg(RADIO_FREQ);
+
+			gpio_mode_setup(GPIOB, GPIO_MODE_INPUT, GPIO_PUPD_NONE, GPIO1); //turn off led
 
 			radio_tx_packet((uint8_t*)(&buff[0]),k);
 
@@ -500,10 +507,10 @@ int main(void)
 			radio_standby();
 			radio_pa_off();
 			radio_lna_max();
-			radio_set_frequency_frreg(FREQ_434_100);
+			radio_set_frequency_frreg(RADIO_FREQ);
 			radio_write_single_reg(REG_IRQ_FLAGS,0xFF);
 			radio_set_continuous_rx();
-			GPIOB_ODR = 0;
+
 			//see if we get a header
 			_delay_ms(300);
 			uint8_t stat = radio_read_single_reg(REG_MODEM_STAT);
@@ -540,12 +547,12 @@ int main(void)
 				}
 			}
 
-			GPIOB_ODR = (1<<1);
+
 			radio_sleep();
 			_delay_ms(10);
 			//s_lora.bandwidth = BANDWIDTH_20_8K;
 			//radio_write_lora_config(&s_lora);
-			//radio_set_frequency_frreg(FREQ_434_100);
+			//radio_set_frequency_frreg(RADIO_FREQ);
 
 			/*
 			radio_standby();
@@ -590,11 +597,11 @@ uint16_t process_packet(char* buffer, uint16_t len, uint8_t format)
 	if ((format == 1) || (format == 2)){
 		k=0;
 		if  (format == 2)
-			k=5;//snprintf(&buff[k],len,"xxxxx");
+			k=7;//snprintf(&buff[k],len,"xxxxx");
 #ifdef TESTING
 		k+=snprintf(&buff[k],len-k,"$$PAYLOAD,%u,",payload_counter++);
 #else
-		k+=snprintf(&buff[k],len-k,"$$SUSF,%u,",payload_counter++);
+		k+=snprintf(&buff[k],len-k,"$$FSUS,%u,",payload_counter++);
 #endif
 		if (time_valid)
 			k+=snprintf(&buff[k],len-k,"%02u:%02u:%02u,",
@@ -619,6 +626,8 @@ uint16_t process_packet(char* buffer, uint16_t len, uint8_t format)
 			buff[2] = 0x55;
 			buff[3] = 0x80;
 			buff[4] = 0x80;
+			buff[5] = 0x80;
+			buff[6] = 0x80;
 			crc = calculate_crc16(&buff[7]);
 		}
 		else
@@ -633,7 +642,7 @@ uint16_t process_packet(char* buffer, uint16_t len, uint8_t format)
 
 		cmp_ctx_t cmp;
 		hb_buf_ptr = 0;
-		cmp_init(&cmp, (void*)buff, file_reader, file_writer);
+		cmp_init(&cmp, (void*)buff, 0, file_writer);
 
 
 		cmp_write_map(&cmp, 7);
@@ -643,7 +652,7 @@ uint16_t process_packet(char* buffer, uint16_t len, uint8_t format)
 #ifdef TESTING
 		cmp_write_str(&cmp, "PAYLOAD", 7);
 #else
-		cmp_write_str(&cmp, "SUSF", 4);
+		cmp_write_str(&cmp, "FSUS", 4);
 #endif
 
 		cmp_write_uint(&cmp, 1);
