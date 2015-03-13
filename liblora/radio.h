@@ -88,8 +88,9 @@ void radio_set_single_rx(void);
 #define FREQ_434_050 7111475
 #define FREQ_434_075 7111885
 #define FREQ_434_100 7112294
-
 #define FREQ_434_300 7115571
+#define FREQ_434_400 7117210
+#define FREQ_434_450 7118029
 
 #define FDEV_600 1
 #define BITRATE_500 64000

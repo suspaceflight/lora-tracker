@@ -8,14 +8,16 @@
 #include <libopencm3/stm32/dma.h>
 #include <libopencm3/stm32/iwdg.h>
 #include <libopencm3/cm3/nvic.h>
+#include <libopencm3/cm3/systick.h>
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "radio.h"
 #include "cmp.h"
 
-#define RADIO_FREQ  FREQ_434_050
+#define RADIO_FREQ  FREQ_434_300
 
 #define ENABLE_GPS
 //#define LORA_RX
@@ -23,17 +25,30 @@
 
 //#define TESTING
 
+
+/* TIM14 option register (TIM14_OR) */
+#define TIM_OR(tim_base)		MMIO32(tim_base + 0x50)
+#define TIM14_OR			TIM_OR(TIM14)
+
 void init(void);
+void calibrate_hsi(void);
 void _delay_ms(const uint32_t delay);
 void uart_send_blocking_len(uint8_t *buff, uint16_t len);
 uint16_t calculate_crc16 (char *input);
 uint16_t process_packet(char* buffer, uint16_t len, uint8_t format);
 
-#define TOTAL_SENTENCES 8
 #define RTTY_SENTENCE 0xFF
-static const uint8_t sentences_coding[] =    {CODING_4_8,      CODING_4_6,      CODING_4_8,      CODING_4_5,      CODING_4_6,      CODING_4_8,     CODING_4_5,     0};
+
+#define TOTAL_SENTENCES 8
+static const uint8_t sentences_coding[] =    {CODING_4_8,      CODING_4_6,      CODING_4_8,      CODING_4_5,      CODING_4_6,      CODING_4_6,     CODING_4_5,     0};
 static const uint8_t sentences_spreading[] = {11,              8 ,              11,              8,               8,               11,             7,              0};
-static const uint8_t sentences_bandwidth[] = {BANDWIDTH_20_8K, BANDWIDTH_20_8K, BANDWIDTH_41_7K, BANDWIDTH_41_7K, BANDWIDTH_20_8K, BANDWIDTH_125K, BANDWIDTH_125K, RTTY_SENTENCE};
+static const uint8_t sentences_bandwidth[] = {BANDWIDTH_20_8K, BANDWIDTH_20_8K, BANDWIDTH_41_7K, BANDWIDTH_41_7K, BANDWIDTH_20_8K, BANDWIDTH_20_8K, BANDWIDTH_125K, RTTY_SENTENCE};
+
+//#define TOTAL_SENTENCES 3
+//static const uint8_t sentences_coding[] =    {CODING_4_5,       0, 0};
+//static const uint8_t sentences_spreading[] = {10,               0, 0};
+//static const uint8_t sentences_bandwidth[] = {BANDWIDTH_41_7K,  RTTY_SENTENCE, RTTY_SENTENCE};
+
 static uint8_t sentence_counter = 0;
 
 char buff[128] = {0};
@@ -85,6 +100,8 @@ volatile uint8_t sats = 0;
 volatile uint8_t pos_valid = 0;
 volatile uint8_t time_valid = 0;
 
+volatile uint16_t ms_countdown = 0;
+
 uint16_t payload_counter = 0;
 uint16_t uplink_counter = 0;
 
@@ -120,6 +137,143 @@ static size_t file_writer(cmp_ctx_t *ctx, const void *data, size_t count) {
 }
 
 /////////////////
+
+
+uint16_t cal_get_period(void)
+{
+	//measure ext clock
+	uint16_t c1,c2;
+	ms_countdown = 2*6*3;
+	while(((TIM14_SR & (1<<1))==0) && (ms_countdown>0));  //CC1IF
+	TIM14_SR |= (1<<1);
+	while(((TIM14_SR & (1<<1))==0) && (ms_countdown>0));  //CC1IF
+	TIM14_SR |= (1<<1);
+	c1 = TIM14_CCR1;
+	while(((TIM14_SR & (1<<1))==0) && (ms_countdown>0));  //CC1IF
+	TIM14_SR |= (1<<1);
+	c2 = TIM14_CCR1;
+
+	while(((TIM14_SR & (1<<1))==0) && (ms_countdown>0));  //CC1IF
+	TIM14_SR |= (1<<1);
+	uint16_t c3 = TIM14_CCR1;
+
+	if (ms_countdown == 0) //error condition
+		return 0;
+
+	int32_t diff = c2-c1;
+	if(diff < 0)
+		diff += 65536;	//correct for overflows
+	return (uint16_t)diff;
+}
+
+void calibrate_hsi(void)
+{
+	return;
+	/*
+	uint8_t wasinsleep = 0;
+	if ((radio_read_single_reg(REG_OP_MODE)&0x7) == 0){
+		wasinsleep = 1;
+		radio_standby();
+	}
+	//turn on clkout for DIO5
+	uint8_t diomapping = radio_read_single_reg(REG_DIO_MAPPING2) & ~(3<<4);
+	if ((radio_read_single_reg(REG_OP_MODE)&(1<<7)) == 0) //FSK
+		radio_write_single_reg(REG_DIO_MAPPING2,diomapping);
+	else
+		radio_write_single_reg(REG_DIO_MAPPING2,diomapping | (1<<4));
+
+	diomapping = radio_read_single_reg(REG_DIO_MAPPING2);
+	*/
+	//radio_sleep();
+	//radio_write_single_reg(REG_OP_MODE,1);
+
+	radio_write_single_reg(REG_OSC,5);    //1MHz
+	rcc_clock_setup_in_hsi_out_48mhz();
+	RCC_CR |= (1<<18);   //HSE Bypass
+	RCC_CR |= (1<<16);   //HSE ON
+	_delay_ms(50);
+
+	//configure
+	timer_reset(TIM14);
+	TIM14_OR &= ~(0x3);
+	TIM14_OR |= 0x2;	//set TIM14 ch1 input to HSE/32
+	TIM14_CCMR1 = (0x9 << 4) | (3 << 2) | 1;    //bits1:0 = CC1 is an input, bits7:4 input filter, bits3:2 /4 prescaler.
+	TIM14_CCER |= 1; //rising edges, enable capture
+	timer_enable_counter(TIM14);
+	const uint16_t normal_len = 32*48*4*2;
+	const uint16_t error_len = 600*2;
+	const uint16_t expected_min_error = 100*2;
+	const uint16_t near_zero_error = 15*2;
+
+	// 5% of 6144 (ideal period) is 307
+
+
+	int16_t error = 100;
+
+	//binary search for trim
+	uint8_t trim_min = 0;
+	uint8_t trim_max = 31;
+	uint8_t tries = 5;
+	uint8_t trim_val;
+	uint32_t prev = RCC_CR;
+
+	while((tries>0) && (abs(error) > near_zero_error))
+	{
+		tries--;
+		trim_val = trim_min+((trim_max-trim_min)>>1);
+		RCC_CR &= ~(0x1F<<3);
+		RCC_CR |= trim_val<<3;
+		error = ((uint16_t)cal_get_period())-normal_len;
+
+		if (abs(error) > error_len)  //something went wrong, set trim to default
+		{
+			RCC_CR = prev;
+			tries = 0;
+		}
+
+		if (error < 0){ //HSI too slow
+			trim_min = trim_val;
+		}else{//HSI too fast
+			trim_max = trim_val;
+		}
+
+
+	}
+
+/*
+	uint8_t trim = 0;
+	uint16_t tf[32];
+	while(trim <= 0x1F){
+		RCC_CR &= ~(0x1F<<3);
+		RCC_CR |= trim<<3;
+		diff = cal_get_period();
+		tf[trim] = diff;
+		trim++;
+
+	}
+	*/
+
+	//final check
+	error = ((uint16_t)cal_get_period())-normal_len;
+	if (abs(error) > expected_min_error)  //something went wrong
+	{
+		RCC_CR &= ~(0x1F<<3);
+		RCC_CR |= 16<<3;
+	}
+
+
+
+	timer_reset(TIM14);
+	RCC_CR &= ~(1<<16); //HSE off
+	radio_write_single_reg(REG_OSC,7);    //sx1278 osc out off
+	rcc_clock_setup_in_hsi_out_8mhz();
+
+	usart_send_blocking(USART1,0);
+	usart_send_blocking(USART1,trim_val);
+	////if (wasinsleep)
+	//	radio_sleep();
+
+}
 
 void init_wdt(void)
 {
@@ -162,7 +316,16 @@ void init (void)
 	rcc_clock_setup_in_hsi_out_8mhz();
 	rcc_periph_clock_enable(RCC_GPIOB);
 	rcc_periph_clock_enable(RCC_GPIOA);
+	rcc_periph_clock_enable(RCC_TIM14);
 
+	//systick
+	systick_set_clocksource(STK_CSR_CLKSOURCE_AHB);
+	systick_set_reload(7999);		//1kHz at 8MHz clock
+	systick_interrupt_enable();
+	systick_counter_enable();
+
+	RCC_CR &= ~(0x1F<<3); //trim the crystal down a little
+	RCC_CR |= 15<<3;
 
 
 	//adc
@@ -203,7 +366,10 @@ void init (void)
 
 	adc_start_conversion_regular(ADC1);
 
+	radio_init();
+
 //	_delay_ms(200);
+//	calibrate_hsi();
 	uart_send_blocking_len((uint8_t*)flight_mode,44);
 	uart_send_blocking_len((uint8_t*)disable_nmea_gpgga,16);
 	uart_send_blocking_len((uint8_t*)disable_nmea_gpgll,16);
@@ -224,6 +390,12 @@ void uart_send_blocking_len(uint8_t *buff, uint16_t len)
 	for (i = 0; i < len; i++)
 		usart_send_blocking(USART1,*buff++);
 
+}
+
+void sys_tick_handler(void)
+{
+	if (ms_countdown)
+		ms_countdown--;
 }
 
 void usart1_isr(void)
@@ -331,7 +503,7 @@ int main(void)
 
 	_delay_ms(100);
 
- 	radio_init();
+
  	uint8_t uplink_en = 1;
 
 #ifdef LORA_RX
@@ -419,7 +591,7 @@ int main(void)
 
 #endif
 
-	uart_send_blocking_len((uint8_t*)flight_mode,44);
+
  	radio_high_power();
 	radio_set_frequency_frreg(RADIO_FREQ);
 
@@ -431,6 +603,9 @@ int main(void)
 #ifndef ENABLE_GPS
 		time_updated = 1;
 #endif
+
+		//calibrate_hsi();
+		uart_send_blocking_len((uint8_t*)flight_mode,44);
 
 		while(time_updated == 0 &&  pos_updated == 0 && gnss_status_updated == 0);
 
@@ -459,6 +634,7 @@ int main(void)
 			radio_high_power();
 			radio_start_tx_rtty((char*)buff,BAUD_50,4);
 			gpio_mode_setup(GPIOB, GPIO_MODE_INPUT, GPIO_PUPD_NONE, GPIO1);  //turn off led
+			//calibrate_hsi();
 			while(rtty_in_progress() != 0){
 				radio_rtty_poll_buffer_refill();
 				_delay_ms(20);
@@ -589,7 +765,7 @@ uint16_t process_packet(char* buffer, uint16_t len, uint8_t format)
 	nvic_enable_irq(NVIC_USART1_IRQ);
 
 	uint32_t bv = ADC1_DR;
-	bv = bv * 8;
+	bv = bv * 6;
 	bv = bv/100;
 	adc_start_conversion_regular(ADC1);
 	uint16_t k;
@@ -599,9 +775,9 @@ uint16_t process_packet(char* buffer, uint16_t len, uint8_t format)
 		if  (format == 2)
 			k=7;//snprintf(&buff[k],len,"xxxxx");
 #ifdef TESTING
-		k+=snprintf(&buff[k],len-k,"$$PAYLOAD,%u,",payload_counter++);
+		k+=snprintf(&buff[k],len-k,"$$PAYIOAD,%u,",payload_counter++);
 #else
-		k+=snprintf(&buff[k],len-k,"$$FSUS,%u,",payload_counter++);
+		k+=snprintf(&buff[k],len-k,"$$SUSF,%u,",payload_counter++);
 #endif
 		if (time_valid)
 			k+=snprintf(&buff[k],len-k,"%02u:%02u:%02u,",
@@ -628,7 +804,7 @@ uint16_t process_packet(char* buffer, uint16_t len, uint8_t format)
 			buff[4] = 0x80;
 			buff[5] = 0x80;
 			buff[6] = 0x80;
-			crc = calculate_crc16(&buff[7]);
+			crc = calculate_crc16(&buff[9]);
 		}
 		else
 			crc = calculate_crc16(&buff[2]);
@@ -650,9 +826,9 @@ uint16_t process_packet(char* buffer, uint16_t len, uint8_t format)
 
 		cmp_write_uint(&cmp, 0);
 #ifdef TESTING
-		cmp_write_str(&cmp, "PAYLOAD", 7);
+		cmp_write_str(&cmp, "PAYIOAD", 7);
 #else
-		cmp_write_str(&cmp, "FSUS", 4);
+		cmp_write_str(&cmp, "SUSF", 4);
 #endif
 
 		cmp_write_uint(&cmp, 1);
@@ -714,9 +890,13 @@ uint16_t calculate_crc16 (char *input)
 
 void _delay_ms(const uint32_t delay)
 {
+	ms_countdown = delay;
+	while(ms_countdown);
+	/*
     uint32_t i, j;
 
     for(i=0; i< delay; i++)
         for(j=0; j<1000; j++)
             __asm__("nop");
+            */
 }

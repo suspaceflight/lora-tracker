@@ -96,7 +96,7 @@ volatile radio_lora_settings_t s_currently_unsaved;
 
 volatile uint8_t auto_ping = 1;
 
-#define PRESET_MAX 5
+#define PRESET_MAX 12
 volatile radio_lora_settings_t presets[PRESET_MAX];
 volatile uint8_t preset_lock[PRESET_MAX];
 
@@ -717,8 +717,8 @@ int main(void)
 			presets[r] = read_settings_flash(r);
 
 		if ((GPIO_IDR(BTN_MENU_PORT) & BTN_MENU_PIN) || (GPIO_IDR(BTN_PST_PORT) & BTN_PST_PIN)){
-			preset_lock[0] = 1;
-			preset_lock[1] = 1;
+			for (r = PRESET_MAX/2; r < PRESET_MAX; r++)
+				preset_lock[r] = 1;
 		}
 	}
 
