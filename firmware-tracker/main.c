@@ -17,7 +17,7 @@
 #include "radio.h"
 #include "cmp.h"
 
-#define RADIO_FREQ  FREQ_434_300
+#define RADIO_FREQ  FREQ_434_450
 
 #define ENABLE_GPS
 //#define LORA_RX
@@ -39,15 +39,15 @@ uint16_t process_packet(char* buffer, uint16_t len, uint8_t format);
 
 #define RTTY_SENTENCE 0xFF
 
-#define TOTAL_SENTENCES 8
-static const uint8_t sentences_coding[] =    {CODING_4_8,      CODING_4_6,      CODING_4_8,      CODING_4_5,      CODING_4_6,      CODING_4_6,     CODING_4_5,     0};
-static const uint8_t sentences_spreading[] = {11,              8 ,              11,              8,               8,               11,             7,              0};
-static const uint8_t sentences_bandwidth[] = {BANDWIDTH_20_8K, BANDWIDTH_20_8K, BANDWIDTH_41_7K, BANDWIDTH_41_7K, BANDWIDTH_20_8K, BANDWIDTH_20_8K, BANDWIDTH_125K, RTTY_SENTENCE};
+//#define TOTAL_SENTENCES 8
+//static const uint8_t sentences_coding[] =    {CODING_4_8,      CODING_4_6,      CODING_4_8,      CODING_4_5,      CODING_4_6,      CODING_4_6,     CODING_4_5,     0};
+//static const uint8_t sentences_spreading[] = {11,              8 ,              11,              8,               8,               11,             7,              0};
+//static const uint8_t sentences_bandwidth[] = {BANDWIDTH_20_8K, BANDWIDTH_20_8K, BANDWIDTH_41_7K, BANDWIDTH_41_7K, BANDWIDTH_20_8K, BANDWIDTH_20_8K, BANDWIDTH_125K, RTTY_SENTENCE};
 
-//#define TOTAL_SENTENCES 3
-//static const uint8_t sentences_coding[] =    {CODING_4_5,       0, 0};
-//static const uint8_t sentences_spreading[] = {10,               0, 0};
-//static const uint8_t sentences_bandwidth[] = {BANDWIDTH_41_7K,  RTTY_SENTENCE, RTTY_SENTENCE};
+#define TOTAL_SENTENCES 3
+static const uint8_t sentences_coding[] =    {CODING_4_5,       0, 0};
+static const uint8_t sentences_spreading[] = {10,               0, 0};
+static const uint8_t sentences_bandwidth[] = {BANDWIDTH_41_7K,  RTTY_SENTENCE, RTTY_SENTENCE};
 
 static uint8_t sentence_counter = 0;
 
@@ -679,6 +679,7 @@ int main(void)
 		{
 			radio_sleep();
 			s_lora.bandwidth = BANDWIDTH_62_5K;
+			s_lora.spreading_factor = 12;
 			radio_write_lora_config(&s_lora);
 			radio_standby();
 			radio_pa_off();
@@ -688,7 +689,7 @@ int main(void)
 			radio_set_continuous_rx();
 
 			//see if we get a header
-			_delay_ms(300);
+			_delay_ms(400);
 			uint8_t stat = radio_read_single_reg(REG_MODEM_STAT);
 			if (stat & (1<<0))
 			{
@@ -777,7 +778,7 @@ uint16_t process_packet(char* buffer, uint16_t len, uint8_t format)
 #ifdef TESTING
 		k+=snprintf(&buff[k],len-k,"$$PAYIOAD,%u,",payload_counter++);
 #else
-		k+=snprintf(&buff[k],len-k,"$$SUSF,%u,",payload_counter++);
+		k+=snprintf(&buff[k],len-k,"$$FSUS,%u,",payload_counter++);
 #endif
 		if (time_valid)
 			k+=snprintf(&buff[k],len-k,"%02u:%02u:%02u,",
@@ -828,7 +829,7 @@ uint16_t process_packet(char* buffer, uint16_t len, uint8_t format)
 #ifdef TESTING
 		cmp_write_str(&cmp, "PAYIOAD", 7);
 #else
-		cmp_write_str(&cmp, "SUSF", 4);
+		cmp_write_str(&cmp, "FSUS", 4);
 #endif
 
 		cmp_write_uint(&cmp, 1);
