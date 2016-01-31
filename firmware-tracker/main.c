@@ -16,14 +16,56 @@
 
 #include "radio.h"
 #include "cmp.h"
+#include "util.h"
 
 #define RADIO_FREQ  FREQ_434_300
 
-#define ENABLE_GPS
-//#define LORA_RX
-#define UPLINK
+#define ENABLE_GPS		//comment out if a GPS is not yet fitted
+//#define LORA_RX		//old
+//#define UPLINK			//enables/disables uplink after each lora packet
+//#define MULTI_POS		//enables the sending of multiple GPS positions in a packet. Only works with msgpack/lora
+#define TESTING		//disables the WDT and sets a fake payload name (to prevent being accidently left enabled)
 
-//#define TESTING
+
+
+#ifdef MULTI_POS
+#define GPS_UPDATE_PERIOD 500				// in ms. Should be a factor of 1000
+
+//Number of GPS positions to collect before starting to send another packet
+// MAX_POSITIONS_PER_SENTENCE/GPS_UPDATE_RATE   should ideally be an integer
+#define MAX_POSITIONS_PER_SENTENCE 22
+
+
+//Number of msgpack bytes. See item below
+#define MAX_MSGPACK_LEN 40
+
+//Useful for testing. Ensure 'MAX_MSGPACK_LEN' number
+//  of bytes can be sent before all the GPS positions have been collected
+//	for the next packet
+#define PAD_MSGPACK_TO_MAX
+
+static const uint8_t sentences_coding[] =    {CODING_4_8     };
+static const uint8_t sentences_spreading[] = {11              };
+static const uint8_t sentences_bandwidth[] = {BANDWIDTH_41_7K};
+
+
+#else
+#define GPS_UPDATE_PERIOD 1000
+
+static const uint8_t sentences_coding[] =    {CODING_4_8,      CODING_4_6,      CODING_4_8,      CODING_4_5,      CODING_4_6,      CODING_4_6,     CODING_4_5,     0};
+static const uint8_t sentences_spreading[] = {11,              8 ,              11,              8,               8,               11,             7,              0};
+static const uint8_t sentences_bandwidth[] = {BANDWIDTH_20_8K, BANDWIDTH_20_8K, BANDWIDTH_41_7K, BANDWIDTH_41_7K, BANDWIDTH_20_8K, BANDWIDTH_20_8K, BANDWIDTH_125K, RTTY_SENTENCE};
+
+//static const uint8_t sentences_coding[] =    {CODING_4_5,       0, 0};
+//static const uint8_t sentences_spreading[] = {10,               0, 0};
+//static const uint8_t sentences_bandwidth[] = {BANDWIDTH_41_7K,  RTTY_SENTENCE, RTTY_SENTENCE};
+#endif
+
+#define TOTAL_SENTENCES (sizeof(sentences_coding)/sizeof(uint8_t))
+
+
+
+
 
 
 /* TIM14 option register (TIM14_OR) */
@@ -34,20 +76,9 @@ void init(void);
 void calibrate_hsi(void);
 void _delay_ms(const uint32_t delay);
 void uart_send_blocking_len(uint8_t *buff, uint16_t len);
-uint16_t calculate_crc16 (char *input);
 uint16_t process_packet(char* buffer, uint16_t len, uint8_t format);
 
-#define RTTY_SENTENCE 0xFF
 
-#define TOTAL_SENTENCES 8
-static const uint8_t sentences_coding[] =    {CODING_4_8,      CODING_4_6,      CODING_4_8,      CODING_4_5,      CODING_4_6,      CODING_4_6,     CODING_4_5,     0};
-static const uint8_t sentences_spreading[] = {11,              8 ,              11,              8,               8,               11,             7,              0};
-static const uint8_t sentences_bandwidth[] = {BANDWIDTH_20_8K, BANDWIDTH_20_8K, BANDWIDTH_41_7K, BANDWIDTH_41_7K, BANDWIDTH_20_8K, BANDWIDTH_20_8K, BANDWIDTH_125K, RTTY_SENTENCE};
-
-//#define TOTAL_SENTENCES 3
-//static const uint8_t sentences_coding[] =    {CODING_4_5,       0, 0};
-//static const uint8_t sentences_spreading[] = {10,               0, 0};
-//static const uint8_t sentences_bandwidth[] = {BANDWIDTH_41_7K,  RTTY_SENTENCE, RTTY_SENTENCE};
 
 static uint8_t sentence_counter = 0;
 
@@ -78,6 +109,9 @@ const uint8_t disable_nmea_gpvtg[] = {0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0xF0, 
 //len = 16
 const uint8_t enable_navpvt[] = {0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0x01, 0x07, 0x00,
 		0x01, 0x00, 0x00, 0x00, 0x00, 0x18, 0xE1};
+//len = 14
+const uint8_t set_rate[] = {0xB5, 0x62, 0x06, 0x08, 0x06, 0x00, 0xF4, 0x01, 0x01, 0x00,
+		0x00, 0x00, 0x0A, 0x75};
 
 
 volatile uint16_t gnss_string_count = 0; //0 - not in string, >=1 - in string
@@ -104,6 +138,18 @@ volatile uint16_t ms_countdown = 0;
 
 uint16_t payload_counter = 0;
 uint16_t uplink_counter = 0;
+
+#ifdef MULTI_POS
+volatile int16_t diff_lat [MAX_POSITIONS_PER_SENTENCE-1] = {0};  //TODO: check these are fine as int16
+volatile int16_t diff_long[MAX_POSITIONS_PER_SENTENCE-1] = {0};
+volatile int16_t diff_alt [MAX_POSITIONS_PER_SENTENCE-1] = {0};
+volatile uint8_t diff_count = 0;
+volatile uint8_t diff_valid = 0;
+volatile int32_t prev_latitude = 0;
+volatile int32_t prev_longitude = 0;
+volatile int32_t prev_altitude = 0;
+volatile uint8_t second_prev = 99;
+#endif
 
 
 ///////// msgpack stuff
@@ -377,7 +423,13 @@ void init (void)
 	uart_send_blocking_len((uint8_t*)disable_nmea_gpgsv,16);
 	uart_send_blocking_len((uint8_t*)disable_nmea_gprmc,16);
 	uart_send_blocking_len((uint8_t*)disable_nmea_gpvtg,16);
-	uart_send_blocking_len((uint8_t*)enable_navpvt,16);
+
+	uart_send_blocking_len((uint8_t*)set_rate,14);
+
+	uint16_t ubloxcrc = calculate_ublox_crc(&enable_navpvt[2],16-4);
+	uart_send_blocking_len((uint8_t*)enable_navpvt,14);
+	usart_send_blocking(USART1,ubloxcrc>>8);
+	usart_send_blocking(USART1,ubloxcrc&0xFF);
 
 	//used to hiz the uart so the pc can query flight mode
 	//gpio_mode_setup(GPIOA, GPIO_MODE_INPUT, GPIO_PUPD_NONE,
@@ -449,6 +501,90 @@ void usart1_isr(void)
 				if (gnss_message_id == 0x0107 && gnss_string_len == 92)  //navpvt
 				{
 					fixtype = gnss_buff[20];
+					uint8_t valid_time = gnss_buff[11];  //valid time flags
+
+#ifdef MULTI_POS
+					if ((valid_time & (1<<1)) && (diff_count==0))
+					{
+						hour = gnss_buff[8];
+						minute = gnss_buff[9];
+						second_prev = second;
+						second = gnss_buff[10];
+						time_valid |= 1;
+					}
+
+					if (fixtype == 2 || fixtype == 3){
+						if((diff_count>0) && (diff_count < MAX_POSITIONS_PER_SENTENCE)){
+							int32_t temp;
+							temp = (gnss_buff[31] << 24)
+									 | (gnss_buff[30] << 16)
+									 | (gnss_buff[29] << 8)
+									 | (gnss_buff[28]);
+							diff_lat[diff_count-1] = temp-prev_latitude;
+							prev_latitude = temp;
+
+							temp = (gnss_buff[27] << 24)
+									 | (gnss_buff[26] << 16)
+									 | (gnss_buff[25] << 8)
+									 | (gnss_buff[24]);
+							diff_long[diff_count-1] = temp-prev_longitude;
+							prev_longitude = temp;
+
+							temp = (gnss_buff[39] << 24)
+									 | (gnss_buff[38] << 16)
+									 | (gnss_buff[37] << 8)
+									 | (gnss_buff[36]);
+							diff_alt[diff_count-1] = temp-prev_altitude;
+							prev_altitude = temp;
+
+							diff_count++;
+						}
+						else if (diff_count==0){
+							//check if time is aligned to .000 sec
+							if ((valid_time & (1<<1)) && (second_prev != second)){
+								latitude = (gnss_buff[31] << 24)
+										 | (gnss_buff[30] << 16)
+										 | (gnss_buff[29] << 8)
+										 | (gnss_buff[28]);
+								longitude = (gnss_buff[27] << 24)
+										 | (gnss_buff[26] << 16)
+										 | (gnss_buff[25] << 8)
+										 | (gnss_buff[24]);
+								altitude = (gnss_buff[39] << 24)
+										 | (gnss_buff[38] << 16)
+										 | (gnss_buff[37] << 8)
+										 | (gnss_buff[36]);
+								prev_latitude = latitude;
+								prev_longitude = longitude;
+								prev_altitude = altitude;
+								pos_valid |= 1;
+								diff_count++;
+								diff_valid = 1;
+							}
+						}
+						else{	//if this else gets called, it means the data is not being sent fast enough
+
+						}
+					}
+					else if ((diff_count>0) && (diff_count < MAX_POSITIONS_PER_SENTENCE)){
+						//if gps loses lock we still want to fill in the diff array
+						//no changes to prev_position
+						diff_lat[diff_count-1] = 0;
+						diff_long[diff_count-1] = 0;
+						diff_alt[diff_count-1] = 0;
+						diff_count++;
+					}
+					else if (diff_count==0){
+						//if no lock at start of sequence, then disable sending diffs
+						diff_valid = 0;
+
+						diff_count==0; //keep this at 0.
+					}
+
+
+
+
+#else
 					if (fixtype == 2 || fixtype == 3){
 						latitude = (gnss_buff[31] << 24)
 								 | (gnss_buff[30] << 16)
@@ -464,12 +600,7 @@ void usart1_isr(void)
 								 | (gnss_buff[36]);
 						pos_valid |= 1;
 					}
-
-
-					sats = gnss_buff[23];
-
-					uint8_t valid = gnss_buff[11];  //valid time flags
-					if (valid & (1<<1))
+					if (valid_time & (1<<1))
 					{
 						hour = gnss_buff[8];
 						minute = gnss_buff[9];
@@ -477,6 +608,9 @@ void usart1_isr(void)
 						time_valid |= 1;
 					}
 
+#endif
+
+					sats = gnss_buff[23];
 					gnss_status_updated = 1;
 					time_updated = 1;
 					pos_updated = 1;
@@ -488,6 +622,10 @@ void usart1_isr(void)
 	else if (((USART_ISR(USART1) & USART_ISR_ORE) != 0))  //overrun, clear flag
 	{
 		USART1_ICR = USART_ICR_ORECF;
+	}
+	else //clear all the things
+	{
+		USART1_ICR = 0x20a1f;
 	}
 }
 
@@ -506,97 +644,15 @@ int main(void)
 
  	uint8_t uplink_en = 1;
 
-#ifdef LORA_RX
- 	radio_write_lora_config(&s_lora);
- 	radio_pa_off();
-	radio_lna_max();
-	radio_set_frequency_frq(434098000);
-	radio_set_continuous_rx();
-	int i;
-	int j=0;
-	while(1)
-	{
-		uint8_t stat = radio_read_single_reg(REG_MODEM_STAT);
-		uint8_t irq = radio_read_single_reg(REG_IRQ_FLAGS);
-		uint8_t nb = radio_read_single_reg(REG_RX_NB_BYTES);
-		uint8_t hrx = radio_read_single_reg(REG_RX_HEADER_CNT_VALUE_LSB);
-
-		snprintf(buff,60,"stat: %X  irq: %X headers rx: %X nBytes: %d\r\n",stat,irq,hrx,nb);
-		i=0;
-		while (buff[i])
-			usart_send_blocking(USART1, buff[i++]);
-
-		if (irq & (1<<6))
-		{
-			int16_t r = radio_check_read_rx_packet(128,(uint8_t*)buff,1);
-
-			//if (r > 0)
-			{
-				for (i = 0; i < r; i++)
-					usart_send_blocking(USART1, buff[i]);
-				int16_t snr = radio_read_single_reg(REG_PKT_SNR_VALUE);
-				if (snr & 0x80)
-					snr |= 0xFF00;
-				int16_t rssi = radio_read_single_reg(REG_PKT_RSSI_VALUE)-164;
-				int32_t error = radio_read_single_reg(REG_FEI_MSB_LORA) << 8;
-				error = (error | radio_read_single_reg(REG_FEI_MID_LORA)) << 8;
-				error |= radio_read_single_reg(REG_FEI_LSB_LORA);
-				if (error & (1<<19))
-					error |= 0xFFF00000;
-				snprintf(buff,60,"snr: %i  rssi: %i offset: %li     \r\n",snr,rssi,error);
-				i=0;
-				while (buff[i])
-					usart_send_blocking(USART1, buff[i++]);
-			}
-			//else
-			if (r < 0)
-			{
-				snprintf(buff,60,"CRC ERROR\r\n");
-				i=0;
-				while (buff[i])
-					usart_send_blocking(USART1, buff[i++]);
-			}
-			radio_write_single_reg(REG_IRQ_FLAGS,0xFF);
-			if (0)//1)//(j++ &0x3) == 0x3)
-			{
-
-				radio_sleep();
-				_delay_ms(10);
-				radio_set_frequency_frreg(RADIO_FREQ);
-				radio_write_lora_config(&s_lora);
-				radio_standby();
-				radio_high_power();
-				i=snprintf(buff,60,"PINGPINGPING");
-				_delay_ms(700);
-				radio_tx_packet(buff,i);
-
-				_delay_ms(200);
-				while(lora_in_progress())
-					_delay_ms(50);
-
-				radio_standby();
-				radio_pa_off();
-				radio_lna_max();
-				radio_set_frequency_frreg(RADIO_FREQ);
-				radio_set_continuous_rx();
-
-
-			}
-
-		}
-
-		_delay_ms(250);
-	}
-
-
-#endif
-
 
  	radio_high_power();
 	radio_set_frequency_frreg(RADIO_FREQ);
 
 	uint16_t k;
-
+	USART1_ICR = USART_ICR_ORECF;
+#ifdef MULTI_POS
+	diff_count = 0;
+#endif
 	while(1)
 	{
 
@@ -608,7 +664,9 @@ int main(void)
 		uart_send_blocking_len((uint8_t*)flight_mode,44);
 
 		while(time_updated == 0 &&  pos_updated == 0 && gnss_status_updated == 0);
-
+#ifdef MULTI_POS
+		while((diff_count < MAX_POSITIONS_PER_SENTENCE) & (diff_valid > 0));
+#endif
 
 		//WDT reset
 		IWDG_KR = 0xAAAA;
@@ -654,7 +712,16 @@ int main(void)
 			if (s_lora.bandwidth != BANDWIDTH_125K)
 				uplink_en = 1;
 
+#ifdef MULTI_POS
+			if ((diff_count < MAX_POSITIONS_PER_SENTENCE))
+				k=process_packet(buff,100,1);
+			else
+				k=process_packet(buff,100,1); //TODO: process diffs
+			diff_count = 0; //make sure diff_count is reset to 0
+#else
 			k=process_packet(buff,100,1);
+#endif
+
 
 
 			radio_write_lora_config(&s_lora);
@@ -864,45 +931,11 @@ uint16_t process_packet(char* buffer, uint16_t len, uint8_t format)
 	return k;
 }
 
-uint16_t crc_xmodem_update (uint16_t crc, uint8_t data)
-{
-	int i;
 
-	crc = crc ^ ((uint16_t)data << 8);
-	for (i=0; i<8; i++)
-	{
-		if (crc & 0x8000)
-			crc = (crc << 1) ^ 0x1021;
-		else
-			crc <<= 1;
-	}
-
-	return crc;
-}
-
-uint16_t calculate_crc16 (char *input)
-{
-	uint16_t crc;
-	crc = 0xFFFF;
-
-	while (*input)
-	{
-		crc = crc_xmodem_update(crc, *input);
-		input++;
-	}
-
-	return crc;
-}
 
 void _delay_ms(const uint32_t delay)
 {
 	ms_countdown = delay;
 	while(ms_countdown);
-	/*
-    uint32_t i, j;
 
-    for(i=0; i< delay; i++)
-        for(j=0; j<1000; j++)
-            __asm__("nop");
-            */
 }

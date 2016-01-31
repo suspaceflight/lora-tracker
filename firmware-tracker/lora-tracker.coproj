@@ -74,9 +74,11 @@
   </Target>
   <Components path="./"/>
   <Files>
+    <File name="util.c" path="util.c" type="1"/>
     <File name="radio.c" path="../liblora/radio.c" type="1"/>
     <File name="syscalls.c" path="../firmware-basestation/syscalls.c" type="1"/>
     <File name="cmp.c" path="../../cmp/cmp.c" type="1"/>
     <File name="main.c" path="main.c" type="1"/>
+    <File name="util.h" path="util.h" type="1"/>
   </Files>
 </Project>
