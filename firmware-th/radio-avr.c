@@ -358,7 +358,7 @@ void radio_init()
 
 
 
-	SPCR = _BV(SPE) | _BV(MSTR) | _BV(SPR0);
+	//SPCR = _BV(SPE) | _BV(MSTR) | _BV(SPR0);
 
 
 	radio_sleep();
@@ -432,15 +432,29 @@ int16_t radio_check_read_rx_packet(uint16_t max_len, uint8_t *buff, uint8_t chec
 	return min(max_len,c);
 }
 
+uint8_t spi_transfer(uint8_t val)
+{
+	USIDR = val; 
+	USISR = (1<<USIOIF); //clear flag
+	while ( (USISR & (1<<USIOIF)) == 0 ) 
+	{
+	 	USICR = (1<<USIWM0)|(1<<USICS1)|(1<<USICLK)|(1<<USITC);
+	}
+	
+	return USIDR;
+}
+
 void spi_tx(uint8_t b){
-	SPDR = b;
-	while(!(SPSR & (1<<SPIF)));
+	//SPDR = b;
+	//while(!(SPSR & (1<<SPIF)));
+	spi_transfer(b);
 }
 
 uint8_t spi_rx(void){
-	SPDR = 0x00;
-	while(!(SPSR & (1<<SPIF)));
-	return (uint8_t)SPDR;
+	//SPDR = 0x00;
+	//while(!(SPSR & (1<<SPIF)));
+	//return (uint8_t)SPDR;
+	return spi_transfer(0x00);
 }
 
 uint8_t radio_read_single_reg(uint8_t reg)
