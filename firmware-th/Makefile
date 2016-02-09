@@ -22,13 +22,14 @@ FUSES      = -U hfuse:w:0xdf:m -U lfuse:w:0xde:m
 # End configuration
 
 OBJECTS = $(SOURCES:.c=.o)
-AVRDUDE = avrdude $(PROGRAMMER) -p $(DEVICE) -C /etc/avrdude.conf
+AVRDUDE = avrdude $(PROGRAMMER) -p $(DEVICE) 
+# -C /etc/avrdude.conf
 
 # Disable warning of strict-aliasing since uIP type-puns
 #COMPILE = avr-gcc -Wall -Os -fno-strict-aliasing -gdwarf-2 -std=gnu99 -Wl,-u,vfprintf -lprintf_flt -lm \
 #		  	-DF_CPU=$(CLOCK) -mmcu=attiny4313 \
 #			-DCALLSIGN=\"$(CALLSIGN)\" -DRADIO_CENTER_FREQ=$(RADIO_CENTER_FREQ)
-COMPILE = avr-gcc -Wall -Os -fno-strict-aliasing -std=gnu99 -mmcu=attiny4313 -DF_CPU=$(CLOCK)
+COMPILE = avr-gcc -Wall -Os -fno-strict-aliasing -fdata-sections -ffunction-sections -std=gnu99 -mmcu=attiny4313 -Wl,--gc-sections -DF_CPU=$(CLOCK)
 
 # symbolic targets:
 all:	main.hex

@@ -5,3 +5,4 @@
 #define DDR_R_CS (DDRD)
 
 
+#define RTTY_FIFO_THRESHOLD 20
