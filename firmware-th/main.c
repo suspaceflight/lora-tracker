@@ -7,14 +7,14 @@ int main(void){
 
 	DDRD |= (1<<2);
 
-	
+	radio_init();
 	
 	while(1){
 		PORTD |= (1<<2);
 		_delay_ms(1000);
 		PORTD &= ~(1<<2);
 		_delay_ms(1000);
-		radio_init();
+		radio_read_version();
 	}
 
 
