@@ -12,7 +12,7 @@ int main(void){
 	while(1){
 		PORTD |= (1<<2);
 		_delay_ms(1000);
-		PORTD = &= (1<<2);
+		PORTD &= ~(1<<2);
 		_delay_ms(1000);
 		radio_init();
 	}
