@@ -6,3 +6,12 @@
 
 
 #define RTTY_FIFO_THRESHOLD 20
+
+#define PORT_MOSI (PORTB)
+#define INPUT_MISO (PINB)
+#define PORT_CLK (PORTB)
+
+#define PIN_MOSI (1<<5)
+#define PIN_MISO (1<<6)
+#define PIN_CLK (1<<7)
+

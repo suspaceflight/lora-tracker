@@ -432,6 +432,29 @@ int16_t radio_check_read_rx_packet(uint16_t max_len, uint8_t *buff, uint8_t chec
 	return min(max_len,c);
 }
 
+uint8_t spi_transfer(uint8_t val){
+        //SPDR = 0x00;
+        //while(!(SPSR & (1<<SPIF)));
+        //return (uint8_t)SPDR;
+        uint8_t i;
+        uint8_t out = 0;
+        uint8_t tx = val;
+        for (i = 0; i < 8; i++){
+                out = out << 1;
+                if (tx & 0x80)
+                        PORT_MOSI |= PIN_MOSI;
+                else
+                        PORT_MOSI &= ~PIN_MOSI;
+                if (INPUT_MISO & PIN_MISO)
+                        out |= 1;
+                PORT_CLK |= PIN_CLK;
+                tx = tx << 1;
+                PORT_CLK &= ~PORT_CLK;
+        }
+        return out;
+}
+
+/*
 uint8_t spi_transfer(uint8_t val)
 {
 	USIDR = val; 
@@ -442,7 +465,7 @@ uint8_t spi_transfer(uint8_t val)
 	}
 	
 	return USIDR;
-}
+}*/
 
 void spi_tx(uint8_t b){
 	//SPDR = b;
