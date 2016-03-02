@@ -18,12 +18,14 @@
 #include "cmp.h"
 #include "util.h"
 
+extern void initialise_monitor_handles(void);
+
 #define RADIO_FREQ  FREQ_434_300
 
 #define ENABLE_GPS		//comment out if a GPS is not yet fitted
 //#define LORA_RX		//old
 //#define UPLINK			//enables/disables uplink after each lora packet
-//#define MULTI_POS		//enables the sending of multiple GPS positions in a packet. Only works with msgpack/lora
+#define MULTI_POS		//enables the sending of multiple GPS positions in a packet. Only works with msgpack/lora
 #define TESTING		//disables the WDT and sets a fake payload name (to prevent being accidently left enabled)
 
 
@@ -359,14 +361,14 @@ void init_wdt(void)
 
 void init (void)
 {
-	rcc_clock_setup_in_hsi_out_8mhz();
+	rcc_clock_setup_in_hsi_out_48mhz();
 	rcc_periph_clock_enable(RCC_GPIOB);
 	rcc_periph_clock_enable(RCC_GPIOA);
 	rcc_periph_clock_enable(RCC_TIM14);
 
 	//systick
 	systick_set_clocksource(STK_CSR_CLKSOURCE_AHB);
-	systick_set_reload(7999);		//1kHz at 8MHz clock
+	systick_set_reload(48000-1);		//1kHz at 8MHz clock
 	systick_interrupt_enable();
 	systick_counter_enable();
 
@@ -393,7 +395,10 @@ void init (void)
 	adc_disable_analog_watchdog(ADC1);
 	adc_power_on(ADC1);
 
-
+#ifdef TESTING
+	gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO10 | GPIO9);
+#endif
+/*
 	//uart
 	nvic_enable_irq(NVIC_USART1_IRQ);
 	rcc_periph_clock_enable(RCC_USART1);
@@ -409,7 +414,7 @@ void init (void)
 	usart_set_baudrate(USART1, 9600);
 	usart_enable_rx_interrupt(USART1);
 	usart_enable(USART1);
-
+*/
 	adc_start_conversion_regular(ADC1);
 
 	radio_init();
@@ -454,9 +459,8 @@ void usart1_isr(void)
 {
 	if (((USART_ISR(USART1) & USART_ISR_RXNE) != 0))
 	{
-
+		gpio_set(GPIOA,GPIO10 | GPIO9);
 		uint8_t d = (uint8_t)USART1_RDR;
-
 
 		if (gnss_string_count == 0){ //look for '0xB5'
 			if (d == 0xB5)
@@ -582,8 +586,6 @@ void usart1_isr(void)
 					}
 
 
-
-
 #else
 					if (fixtype == 2 || fixtype == 3){
 						latitude = (gnss_buff[31] << 24)
@@ -612,21 +614,22 @@ void usart1_isr(void)
 
 					sats = gnss_buff[23];
 					gnss_status_updated = 1;
-					time_updated = 1;
 					pos_updated = 1;
 				}
 				gnss_string_count = 0;  //wait for the next string
 			}
 		}
+
+		gpio_clear(GPIOA,GPIO10 | GPIO9);
 	}
-	else if (((USART_ISR(USART1) & USART_ISR_ORE) != 0))  //overrun, clear flag
+	else// if (((USART_ISR(USART1) & USART_ISR_ORE) != 0))  //overrun, clear flag
 	{
 		USART1_ICR = USART_ICR_ORECF;
 	}
-	else //clear all the things
-	{
-		USART1_ICR = 0x20a1f;
-	}
+	//else //clear all the things
+	//{
+	//	USART1_ICR = 0x20a1f;
+	//}
 }
 
 int main(void)
@@ -649,7 +652,27 @@ int main(void)
 	radio_set_frequency_frreg(RADIO_FREQ);
 
 	uint16_t k;
-	USART1_ICR = USART_ICR_ORECF;
+
+
+	//initialise_monitor_handles(); /* initialize handles */
+	//while(1)
+	//printf("hello world!\r\n");
+
+	nvic_enable_irq(NVIC_USART1_IRQ);
+	rcc_periph_clock_enable(RCC_USART1);
+	gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE,
+			GPIO2 | GPIO3);
+	gpio_set_af(GPIOA, GPIO_AF1, GPIO2 | GPIO3);
+
+	usart_set_parity(USART1 ,USART_PARITY_NONE);
+	usart_set_mode(USART1, USART_MODE_TX_RX );
+	usart_set_stopbits(USART1, USART_CR2_STOP_1_0BIT);
+	usart_set_flow_control(USART1, USART_FLOWCONTROL_NONE);
+	usart_set_databits(USART1, 8);
+	usart_set_baudrate(USART1, 9600);
+	usart_enable_rx_interrupt(USART1);
+	usart_enable(USART1);
+
 #ifdef MULTI_POS
 	diff_count = 0;
 #endif
@@ -663,9 +686,10 @@ int main(void)
 		//calibrate_hsi();
 		uart_send_blocking_len((uint8_t*)flight_mode,44);
 
-		while(time_updated == 0 &&  pos_updated == 0 && gnss_status_updated == 0);
+		while((pos_updated == 0) && (gnss_status_updated == 0))
+			;//USART1_ICR = USART_ICR_ORECF | USART_ICR_FECF;
 #ifdef MULTI_POS
-		while((diff_count < MAX_POSITIONS_PER_SENTENCE) & (diff_valid > 0));
+		while((diff_count < MAX_POSITIONS_PER_SENTENCE) && (diff_valid > 0));
 #endif
 
 		//WDT reset
