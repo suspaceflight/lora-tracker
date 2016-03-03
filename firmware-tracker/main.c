@@ -47,7 +47,7 @@ extern void initialise_monitor_handles(void);
 #define PAD_MSGPACK_TO_MAX
 
 static const uint8_t sentences_coding[] =    {CODING_4_8     };
-static const uint8_t sentences_spreading[] = {11              };
+static const uint8_t sentences_spreading[] = {11             };
 static const uint8_t sentences_bandwidth[] = {BANDWIDTH_41_7K};
 
 
@@ -64,8 +64,9 @@ static const uint8_t sentences_bandwidth[] = {BANDWIDTH_20_8K, BANDWIDTH_20_8K, 
 #endif
 
 #define TOTAL_SENTENCES (sizeof(sentences_coding)/sizeof(uint8_t))
-
-
+#define MAX_VAL_DIFFS (((1<<5)-1)   -1)    //CHECK THIS
+#define MIN_VAL_DIFFS ((-(1<<4))    +1)     //CHECK THIS
+//These need another -1/+1 to avoid overflow due to accumulated rounding issues
 
 
 
@@ -79,7 +80,7 @@ void calibrate_hsi(void);
 void _delay_ms(const uint32_t delay);
 void uart_send_blocking_len(uint8_t *buff, uint16_t len);
 uint16_t process_packet(char* buffer, uint16_t len, uint8_t format);
-
+uint16_t find_diff_scaling(void);
 
 
 static uint8_t sentence_counter = 0;
@@ -151,6 +152,7 @@ volatile int32_t prev_latitude = 0;
 volatile int32_t prev_longitude = 0;
 volatile int32_t prev_altitude = 0;
 volatile uint8_t second_prev = 99;
+uint16_t diff_scaling_factor = 1;
 #endif
 
 
@@ -398,7 +400,7 @@ void init (void)
 #ifdef TESTING
 	gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO10 | GPIO9);
 #endif
-/*
+
 	//uart
 	nvic_enable_irq(NVIC_USART1_IRQ);
 	rcc_periph_clock_enable(RCC_USART1);
@@ -414,7 +416,7 @@ void init (void)
 	usart_set_baudrate(USART1, 9600);
 	usart_enable_rx_interrupt(USART1);
 	usart_enable(USART1);
-*/
+
 	adc_start_conversion_regular(ADC1);
 
 	radio_init();
@@ -658,20 +660,7 @@ int main(void)
 	//while(1)
 	//printf("hello world!\r\n");
 
-	nvic_enable_irq(NVIC_USART1_IRQ);
-	rcc_periph_clock_enable(RCC_USART1);
-	gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE,
-			GPIO2 | GPIO3);
-	gpio_set_af(GPIOA, GPIO_AF1, GPIO2 | GPIO3);
 
-	usart_set_parity(USART1 ,USART_PARITY_NONE);
-	usart_set_mode(USART1, USART_MODE_TX_RX );
-	usart_set_stopbits(USART1, USART_CR2_STOP_1_0BIT);
-	usart_set_flow_control(USART1, USART_FLOWCONTROL_NONE);
-	usart_set_databits(USART1, 8);
-	usart_set_baudrate(USART1, 9600);
-	usart_enable_rx_interrupt(USART1);
-	usart_enable(USART1);
 
 #ifdef MULTI_POS
 	diff_count = 0;
@@ -739,8 +728,10 @@ int main(void)
 #ifdef MULTI_POS
 			if ((diff_count < MAX_POSITIONS_PER_SENTENCE))
 				k=process_packet(buff,100,1);
-			else
+			else{
+				uint16_t d = find_diff_scaling();
 				k=process_packet(buff,100,1); //TODO: process diffs
+			}
 			diff_count = 0; //make sure diff_count is reset to 0
 #else
 			k=process_packet(buff,100,1);
@@ -836,6 +827,37 @@ int main(void)
 
 	}
 }
+
+
+uint16_t find_diff_scaling(void)
+{
+	int16_t diff_max = diff_lat[0];
+	int16_t diff_min = diff_lat[0];
+	uint16_t i;
+
+	//find max/min
+	for (i = 0; i < MAX_POSITIONS_PER_SENTENCE; i++){
+		if (diff_lat[i] > diff_max)
+			diff_max = diff_lat[i];
+		if (diff_long[i] > diff_max)
+			diff_max = diff_long[i];
+
+		if (diff_lat[i] < diff_min)
+			diff_min = diff_lat[i];
+		if (diff_long[i] < diff_min)
+			diff_min = diff_long[i];
+	}
+
+
+	uint16_t out = 1;
+	while((diff_max > MAX_VAL_DIFFS) || (diff_min < MIN_VAL_DIFFS)){
+		out = out << 1;
+		diff_max = diff_max /2;
+		diff_min = diff_min /2;
+	}
+	return out;
+}
+
 
 //returns length written
 //format - 0 = habpack
