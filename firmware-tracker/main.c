@@ -35,16 +35,16 @@ extern void initialise_monitor_handles(void);
 
 //Number of GPS positions to collect before starting to send another packet
 // MAX_POSITIONS_PER_SENTENCE/GPS_UPDATE_RATE   should ideally be an integer
-#define MAX_POSITIONS_PER_SENTENCE 22
-
+#define MAX_POSITIONS_PER_SENTENCE 22    //TODO: ensure output buff is long enough
+//memory usage: 3 bytes + 4 (scaling) + 2 (object 62) + 3*2 (describing arrays)
 
 //Number of msgpack bytes. See item below
-#define MAX_MSGPACK_LEN 40
+#define MAX_MSGPACK_LEN 40   //TODO: THIS
 
 //Useful for testing. Ensure 'MAX_MSGPACK_LEN' number
 //  of bytes can be sent before all the GPS positions have been collected
 //	for the next packet
-#define PAD_MSGPACK_TO_MAX
+#define PAD_MSGPACK_TO_MAX   //TODO: this
 
 static const uint8_t sentences_coding[] =    {CODING_4_8     };
 static const uint8_t sentences_spreading[] = {11             };
@@ -80,7 +80,8 @@ void calibrate_hsi(void);
 void _delay_ms(const uint32_t delay);
 void uart_send_blocking_len(uint8_t *buff, uint16_t len);
 uint16_t process_packet(char* buffer, uint16_t len, uint8_t format);
-uint16_t find_diff_scaling(void);
+uint8_t find_diff_scaling(void);
+void process_diffs(uint8_t scaling_factor);
 
 
 static uint8_t sentence_counter = 0;
@@ -146,6 +147,9 @@ uint16_t uplink_counter = 0;
 volatile int16_t diff_lat [MAX_POSITIONS_PER_SENTENCE-1] = {0};  //TODO: check these are fine as int16
 volatile int16_t diff_long[MAX_POSITIONS_PER_SENTENCE-1] = {0};
 volatile int16_t diff_alt [MAX_POSITIONS_PER_SENTENCE-1] = {0};
+int8_t diff_lat_out [MAX_POSITIONS_PER_SENTENCE-1] = {0};
+int8_t diff_long_out [MAX_POSITIONS_PER_SENTENCE-1] = {0};
+int8_t diff_alt_out [MAX_POSITIONS_PER_SENTENCE-1] = {0};
 volatile uint8_t diff_count = 0;
 volatile uint8_t diff_valid = 0;
 volatile int32_t prev_latitude = 0;
@@ -729,8 +733,9 @@ int main(void)
 			if ((diff_count < MAX_POSITIONS_PER_SENTENCE))
 				k=process_packet(buff,100,1);
 			else{
-				uint16_t d = find_diff_scaling();
-				k=process_packet(buff,100,1); //TODO: process diffs
+				uint8_t d = find_diff_scaling();
+				process_diffs(d);
+				k=process_packet(buff,100,3);
 			}
 			diff_count = 0; //make sure diff_count is reset to 0
 #else
@@ -828,8 +833,34 @@ int main(void)
 	}
 }
 
+void process_diffs(uint8_t scaling_factor)
+{
+	int32_t lat_acc, lat_current, diff, long_acc, long_current;
+	uint16_t i;
 
-uint16_t find_diff_scaling(void)
+	lat_current = latitude + diff_lat[0];
+	diff_lat_out[0] = (int8_t)(diff_lat[0] >> scaling_factor);   //TODO: CHECK THIS WILL BEHAVE AS EXPECTED!
+	lat_acc = latitude + ((int32_t)diff_lat_out[0] << scaling_factor);
+	for(i = 1; i < MAX_POSITIONS_PER_SENTENCE; i++){
+		lat_current = lat_current + diff_lat[i];
+		diff = lat_current - lat_acc;
+		diff_lat_out[i] = (int8_t)(diff >> scaling_factor);
+		lat_acc = lat_acc + ((int32_t)diff_lat_out[i] << scaling_factor);
+	}
+
+//TODO: check diffs are not too big
+	long_current = longitude + diff_long[0];
+	diff_long_out[0] = (int8_t)(diff_long[0] >> scaling_factor);
+	long_acc = longitude + ((int32_t)diff_long_out[0] << scaling_factor);
+	for(i = 1; i < MAX_POSITIONS_PER_SENTENCE; i++){
+		long_current = long_current + diff_long[i];
+		diff = long_current - long_acc;
+		diff_long_out[i] = (int8_t)(diff >> scaling_factor);
+		long_acc = long_acc + ((int32_t)diff_long_out[i] << scaling_factor);
+	}
+}
+
+uint8_t find_diff_scaling(void)
 {
 	int16_t diff_max = diff_lat[0];
 	int16_t diff_min = diff_lat[0];
@@ -849,9 +880,9 @@ uint16_t find_diff_scaling(void)
 	}
 
 
-	uint16_t out = 1;
+	uint16_t out = 0;
 	while((diff_max > MAX_VAL_DIFFS) || (diff_min < MIN_VAL_DIFFS)){
-		out = out << 1;
+		out++;
 		diff_max = diff_max /2;
 		diff_min = diff_min /2;
 	}
@@ -863,6 +894,7 @@ uint16_t find_diff_scaling(void)
 //format - 0 = habpack
 //         1 = ascii
 //         2 = ascii & rtty
+//         3 = habpack diffs
 uint16_t process_packet(char* buffer, uint16_t len, uint8_t format)
 {
 	nvic_disable_irq(NVIC_USART1_IRQ);
@@ -930,7 +962,7 @@ uint16_t process_packet(char* buffer, uint16_t len, uint8_t format)
 			buff[k-2] = 0x80;
 		}
 	}
-	else
+	else if ((format == 0) || (format == 3))
 	{
 		memset((void*)buff,0,len);
 		hb_buf_ptr = 0;
@@ -939,8 +971,10 @@ uint16_t process_packet(char* buffer, uint16_t len, uint8_t format)
 		hb_buf_ptr = 0;
 		cmp_init(&cmp, (void*)buff, 0, file_writer);
 
-
-		cmp_write_map(&cmp, 7);
+		if (format == 3)
+			cmp_write_map(&cmp, 10);
+		else
+			cmp_write_map(&cmp, 7);
 
 
 		cmp_write_uint(&cmp, 0);
@@ -971,8 +1005,32 @@ uint16_t process_packet(char* buffer, uint16_t len, uint8_t format)
 		cmp_write_uint(&cmp, 50);
 		cmp_write_uint(&cmp, uplink_counter);
 
+		if (format == 3){
+			uint16_t i;
+			cmp_write_uint(&cmp, 60);
+			cmp_write_uint(&cmp, diff_scaling_factor);
+
+			cmp_write_uint(&cmp, 61);	//altitude diff
+			cmp_write_uint(&cmp, 1);
+
+			cmp_write_uint(&cmp, 62);
+			cmp_write_array(&cmp, 3);
+			cmp_write_array(&cmp, MAX_POSITIONS_PER_SENTENCE);
+			for (i = 0; i < MAX_POSITIONS_PER_SENTENCE; i++)
+				cmp_write_int(&cmp, diff_lat_out[i]);
+			cmp_write_array(&cmp, MAX_POSITIONS_PER_SENTENCE);
+			for (i = 0; i < MAX_POSITIONS_PER_SENTENCE; i++)
+				cmp_write_int(&cmp, diff_long_out[i]);
+			cmp_write_array(&cmp, MAX_POSITIONS_PER_SENTENCE);
+			for (i = 0; i < MAX_POSITIONS_PER_SENTENCE; i++)
+				cmp_write_int(&cmp, diff_alt_out[i]);
+
+		}
+
 		return hb_buf_ptr;
 	}
+	else
+		return 0;
 
 	return k;
 }
