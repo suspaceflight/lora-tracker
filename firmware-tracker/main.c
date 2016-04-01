@@ -35,7 +35,7 @@ extern void initialise_monitor_handles(void);
 
 //Number of GPS positions to collect before starting to send another packet
 // MAX_POSITIONS_PER_SENTENCE/GPS_UPDATE_RATE   should ideally be an integer
-#define MAX_POSITIONS_PER_SENTENCE 22    //TODO: ensure output buff is long enough
+#define MAX_POSITIONS_PER_SENTENCE 6 //22    //TODO: ensure output buff is long enough
 //memory usage: 3 bytes + 4 (scaling) + 2 (object 62) + 3*2 (describing arrays)
 
 //Number of msgpack bytes. See item below
@@ -46,8 +46,8 @@ extern void initialise_monitor_handles(void);
 //	for the next packet
 #define PAD_MSGPACK_TO_MAX   //TODO: this
 
-static const uint8_t sentences_coding[] =    {CODING_4_8     };
-static const uint8_t sentences_spreading[] = {11             };
+static const uint8_t sentences_coding[] =    {CODING_4_5     };
+static const uint8_t sentences_spreading[] = {10             };
 static const uint8_t sentences_bandwidth[] = {BANDWIDTH_41_7K};
 
 
@@ -64,8 +64,8 @@ static const uint8_t sentences_bandwidth[] = {BANDWIDTH_20_8K, BANDWIDTH_20_8K, 
 #endif
 
 #define TOTAL_SENTENCES (sizeof(sentences_coding)/sizeof(uint8_t))
-#define MAX_VAL_DIFFS (((1<<5)-1)   -1)    //CHECK THIS
-#define MIN_VAL_DIFFS ((-(1<<4))    +1)     //CHECK THIS
+#define MAX_VAL_DIFFS (127-1)
+#define MIN_VAL_DIFFS (-32+1)
 //These need another -1/+1 to avoid overflow due to accumulated rounding issues
 
 
@@ -81,7 +81,9 @@ void _delay_ms(const uint32_t delay);
 void uart_send_blocking_len(uint8_t *buff, uint16_t len);
 uint16_t process_packet(char* buffer, uint16_t len, uint8_t format);
 uint8_t find_diff_scaling(void);
-void process_diffs(uint8_t scaling_factor);
+uint8_t find_diff_scaling_alt(void);
+void process_diffs(uint8_t scaling_factor,uint8_t scaling_factor_alt);
+void process_diff(uint8_t scaling_factor, int32_t start_val, int32_t* input_diff, int8_t* output_diff);
 
 
 static uint8_t sentence_counter = 0;
@@ -144,9 +146,9 @@ uint16_t payload_counter = 0;
 uint16_t uplink_counter = 0;
 
 #ifdef MULTI_POS
-volatile int16_t diff_lat [MAX_POSITIONS_PER_SENTENCE-1] = {0};  //TODO: check these are fine as int16
-volatile int16_t diff_long[MAX_POSITIONS_PER_SENTENCE-1] = {0};
-volatile int16_t diff_alt [MAX_POSITIONS_PER_SENTENCE-1] = {0};
+volatile int32_t diff_lat [MAX_POSITIONS_PER_SENTENCE-1] = {0};  //TODO: check these are fine as int16
+volatile int32_t diff_long[MAX_POSITIONS_PER_SENTENCE-1] = {0};
+volatile int32_t diff_alt [MAX_POSITIONS_PER_SENTENCE-1] = {0};
 int8_t diff_lat_out [MAX_POSITIONS_PER_SENTENCE-1] = {0};
 int8_t diff_long_out [MAX_POSITIONS_PER_SENTENCE-1] = {0};
 int8_t diff_alt_out [MAX_POSITIONS_PER_SENTENCE-1] = {0};
@@ -157,6 +159,7 @@ volatile int32_t prev_longitude = 0;
 volatile int32_t prev_altitude = 0;
 volatile uint8_t second_prev = 99;
 uint16_t diff_scaling_factor = 1;
+uint8_t diff_scaling_factor_alt = 1;
 #endif
 
 
@@ -588,7 +591,7 @@ void usart1_isr(void)
 						//if no lock at start of sequence, then disable sending diffs
 						diff_valid = 0;
 
-						diff_count==0; //keep this at 0.
+						//diff_count=0; //keep this at 0.
 					}
 
 
@@ -734,7 +737,13 @@ int main(void)
 				k=process_packet(buff,100,1);
 			else{
 				uint8_t d = find_diff_scaling();
-				process_diffs(d);
+				uint8_t da = find_diff_scaling_alt();
+				diff_scaling_factor = d;
+				diff_scaling_factor_alt = da;
+				//process_diffs(d,0);
+				process_diff(d, latitude, (int32_t *)diff_lat, diff_lat_out);
+				process_diff(d, longitude, (int32_t *)diff_long, diff_long_out);
+				process_diff(da, altitude, (int32_t *)diff_alt, diff_alt_out);
 				k=process_packet(buff,100,3);
 			}
 			diff_count = 0; //make sure diff_count is reset to 0
@@ -833,15 +842,31 @@ int main(void)
 	}
 }
 
-void process_diffs(uint8_t scaling_factor)
+void process_diff(uint8_t scaling_factor, int32_t start_val, int32_t* input_diff, int8_t* output_diff)
 {
-	int32_t lat_acc, lat_current, diff, long_acc, long_current;
+	int32_t acc, current, diff;
+	uint16_t i;
+
+	current = start_val + input_diff[0];
+	output_diff[0] = (int8_t)(input_diff[0] >> scaling_factor);   //TODO: CHECK THIS WILL BEHAVE AS EXPECTED!
+	acc = start_val + ((int32_t)output_diff[0] << scaling_factor);
+	for(i = 1; i < MAX_POSITIONS_PER_SENTENCE-1; i++){
+		current = current + input_diff[i];
+		diff = current - acc;
+		output_diff[i] = (int8_t)(diff >> scaling_factor);
+		acc = acc + ((int32_t)output_diff[i] << scaling_factor);
+	}
+}
+
+void process_diffs(uint8_t scaling_factor, uint8_t scaling_factor_alt)
+{
+	int32_t lat_acc, lat_current, diff, long_acc, long_current, alt_acc, alt_current;
 	uint16_t i;
 
 	lat_current = latitude + diff_lat[0];
 	diff_lat_out[0] = (int8_t)(diff_lat[0] >> scaling_factor);   //TODO: CHECK THIS WILL BEHAVE AS EXPECTED!
 	lat_acc = latitude + ((int32_t)diff_lat_out[0] << scaling_factor);
-	for(i = 1; i < MAX_POSITIONS_PER_SENTENCE; i++){
+	for(i = 1; i < MAX_POSITIONS_PER_SENTENCE-1; i++){
 		lat_current = lat_current + diff_lat[i];
 		diff = lat_current - lat_acc;
 		diff_lat_out[i] = (int8_t)(diff >> scaling_factor);
@@ -852,11 +877,21 @@ void process_diffs(uint8_t scaling_factor)
 	long_current = longitude + diff_long[0];
 	diff_long_out[0] = (int8_t)(diff_long[0] >> scaling_factor);
 	long_acc = longitude + ((int32_t)diff_long_out[0] << scaling_factor);
-	for(i = 1; i < MAX_POSITIONS_PER_SENTENCE; i++){
+	for(i = 1; i < MAX_POSITIONS_PER_SENTENCE-1; i++){
 		long_current = long_current + diff_long[i];
 		diff = long_current - long_acc;
 		diff_long_out[i] = (int8_t)(diff >> scaling_factor);
 		long_acc = long_acc + ((int32_t)diff_long_out[i] << scaling_factor);
+	}
+
+	alt_current = altitude + diff_alt[0];
+	diff_alt_out[0] = (int8_t)(diff_alt[0] >> scaling_factor_alt);
+	alt_acc = altitude + ((int32_t)diff_alt_out[0] << scaling_factor_alt);
+	for(i = 1; i < MAX_POSITIONS_PER_SENTENCE-1; i++){
+		alt_current = alt_current + diff_alt[i];
+		diff = alt_current - alt_acc;
+		diff_alt_out[i] = (int8_t)(diff >> scaling_factor);
+		alt_acc = alt_acc + ((int32_t)diff_alt_out[i] << scaling_factor_alt);
 	}
 }
 
@@ -867,7 +902,7 @@ uint8_t find_diff_scaling(void)
 	uint16_t i;
 
 	//find max/min
-	for (i = 0; i < MAX_POSITIONS_PER_SENTENCE; i++){
+	for (i = 0; i < MAX_POSITIONS_PER_SENTENCE-1; i++){
 		if (diff_lat[i] > diff_max)
 			diff_max = diff_lat[i];
 		if (diff_long[i] > diff_max)
@@ -877,6 +912,30 @@ uint8_t find_diff_scaling(void)
 			diff_min = diff_lat[i];
 		if (diff_long[i] < diff_min)
 			diff_min = diff_long[i];
+	}
+
+
+	uint16_t out = 0;
+	while((diff_max > MAX_VAL_DIFFS) || (diff_min < MIN_VAL_DIFFS)){
+		out++;
+		diff_max = diff_max /2;
+		diff_min = diff_min /2;
+	}
+	return out;
+}
+
+uint8_t find_diff_scaling_alt(void)
+{
+	int16_t diff_max = diff_alt[0];
+	int16_t diff_min = diff_alt[0];
+	uint16_t i;
+
+	//find max/min
+	for (i = 0; i < MAX_POSITIONS_PER_SENTENCE-1; i++){
+		if (diff_alt[i] > diff_max)
+			diff_max = diff_alt[i];
+		if (diff_alt[i] < diff_min)
+			diff_min = diff_alt[i];
 	}
 
 
@@ -1011,18 +1070,18 @@ uint16_t process_packet(char* buffer, uint16_t len, uint8_t format)
 			cmp_write_uint(&cmp, diff_scaling_factor);
 
 			cmp_write_uint(&cmp, 61);	//altitude diff
-			cmp_write_uint(&cmp, 1);
+			cmp_write_uint(&cmp, diff_scaling_factor_alt);
 
 			cmp_write_uint(&cmp, 62);
 			cmp_write_array(&cmp, 3);
-			cmp_write_array(&cmp, MAX_POSITIONS_PER_SENTENCE);
-			for (i = 0; i < MAX_POSITIONS_PER_SENTENCE; i++)
+			cmp_write_array(&cmp, MAX_POSITIONS_PER_SENTENCE-1);
+			for (i = 0; i < MAX_POSITIONS_PER_SENTENCE-1; i++)
 				cmp_write_int(&cmp, diff_lat_out[i]);
-			cmp_write_array(&cmp, MAX_POSITIONS_PER_SENTENCE);
-			for (i = 0; i < MAX_POSITIONS_PER_SENTENCE; i++)
+			cmp_write_array(&cmp, MAX_POSITIONS_PER_SENTENCE-1);
+			for (i = 0; i < MAX_POSITIONS_PER_SENTENCE-1; i++)
 				cmp_write_int(&cmp, diff_long_out[i]);
-			cmp_write_array(&cmp, MAX_POSITIONS_PER_SENTENCE);
-			for (i = 0; i < MAX_POSITIONS_PER_SENTENCE; i++)
+			cmp_write_array(&cmp, MAX_POSITIONS_PER_SENTENCE-1);
+			for (i = 0; i < MAX_POSITIONS_PER_SENTENCE-1; i++)
 				cmp_write_int(&cmp, diff_alt_out[i]);
 
 		}
