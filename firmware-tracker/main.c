@@ -426,6 +426,7 @@ void init (void)
 
 	adc_start_conversion_regular(ADC1);
 
+	_delay_ms(200);
 	radio_init();
 
 //	_delay_ms(200);
