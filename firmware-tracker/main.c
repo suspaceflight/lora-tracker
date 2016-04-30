@@ -22,6 +22,7 @@ extern void initialise_monitor_handles(void);
 
 #define RADIO_FREQ  FREQ_434_300
 
+#define RADIATION
 #define ENABLE_GPS		//comment out if a GPS is not yet fitted
 //#define LORA_RX		//old
 //#define UPLINK			//enables/disables uplink after each lora packet
@@ -85,6 +86,10 @@ uint8_t find_diff_scaling_alt(void);
 void process_diffs(uint8_t scaling_factor,uint8_t scaling_factor_alt);
 void process_diff(uint8_t scaling_factor, int32_t start_val, int32_t* input_diff, int8_t* output_diff);
 
+#define CLK_PORT GPIOA
+#define CLK_PIN GPIO9
+#define DAT_PORT GPIOA
+#define DAT_PIN GPIO10
 
 static uint8_t sentence_counter = 0;
 
@@ -160,6 +165,13 @@ volatile int32_t prev_altitude = 0;
 volatile uint8_t second_prev = 99;
 uint16_t diff_scaling_factor = 1;
 uint8_t diff_scaling_factor_alt = 1;
+#endif
+
+#ifdef RADIATION
+	uint32_t rad1;
+	uint32_t rad2;
+	uint32_t rad3;
+	uint32_t current;
 #endif
 
 
@@ -683,6 +695,10 @@ int main(void)
 		//calibrate_hsi();
 		uart_send_blocking_len((uint8_t*)flight_mode,44);
 
+#ifdef RADIATION
+		get_radiation(&rad1, &rad2, &rad3, &current);
+#endif
+
 		while((pos_updated == 0) && (gnss_status_updated == 0))
 			;//USART1_ICR = USART_ICR_ORECF | USART_ICR_FECF;
 #ifdef MULTI_POS
@@ -735,7 +751,7 @@ int main(void)
 
 #ifdef MULTI_POS
 			if ((diff_count < MAX_POSITIONS_PER_SENTENCE))
-				k=process_packet(buff,100,1);
+				k=process_packet(buff,100,3);
 			else{
 				uint8_t d = find_diff_scaling();
 				uint8_t da = find_diff_scaling_alt();
@@ -842,6 +858,33 @@ int main(void)
 
 	}
 }
+
+#ifdef RADIATION
+void get_radiation(uint32_t *rad1, uint32_t *rad2, uint32_t *rad3, uint32_t *current){
+
+	uint8_t i,j;
+	uint32_t* din;
+
+	for (i = 0; i < 4; i++){
+
+		switch(i){
+		case 0:	 din = rad1; break;
+		case 1:	 din = rad2; break;
+		case 2:	 din = rad3; break;
+		default: din = current; break;
+		}
+
+		for (j = 0; j < 32; j++){
+			gpio_set(CLK_PORT, CLK_PIN);
+			_delay_ms(1);
+			if (gpio_get(DAT_PORT, DAT_PIN))
+				*din |= 1;
+			gpio_clear(CLK_PORT, CLK_PIN);
+			*din <<= 1;
+		}
+	}
+}
+#endif
 
 void process_diff(uint8_t scaling_factor, int32_t start_val, int32_t* input_diff, int8_t* output_diff)
 {
@@ -978,6 +1021,7 @@ uint16_t process_packet(char* buffer, uint16_t len, uint8_t format)
 
 	if ((format == 1) || (format == 2)){
 		k=0;
+#ifndef MULTI_POS
 		if  (format == 2)
 			k=7;//snprintf(&buff[k],len,"xxxxx");
 #ifdef TESTING
@@ -1021,6 +1065,7 @@ uint16_t process_packet(char* buffer, uint16_t len, uint8_t format)
 			buff[k-1] = 0x80;
 			buff[k-2] = 0x80;
 		}
+#endif
 	}
 	else if ((format == 0) || (format == 3))
 	{
