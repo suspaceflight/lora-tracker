@@ -757,7 +757,7 @@ int main(void)
 
 #ifdef MULTI_POS
 			if ((diff_count < MAX_POSITIONS_PER_SENTENCE))
-				k=process_packet(buff,100,1);
+				k=process_packet(buff,100,0);
 			else{
 				uint8_t d = find_diff_scaling();
 				uint8_t da = find_diff_scaling_alt();
@@ -1095,6 +1095,8 @@ uint16_t process_packet(char* buffer, uint16_t len, uint8_t format)
 
 		if (format == 3)
 			total_send += 3;
+
+		cmp_write_map(&cmp,total_send);
 
 		cmp_write_uint(&cmp, 0);
 #ifdef TESTING
