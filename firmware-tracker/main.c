@@ -85,6 +85,7 @@ uint8_t find_diff_scaling(void);
 uint8_t find_diff_scaling_alt(void);
 void process_diffs(uint8_t scaling_factor,uint8_t scaling_factor_alt);
 void process_diff(uint8_t scaling_factor, int32_t start_val, int32_t* input_diff, int8_t* output_diff);
+void get_radiation(uint32_t* rad1, uint32_t* rad2, uint32_t* rad3, uint32_t* current);
 
 #define CLK_PORT GPIOA
 #define CLK_PIN GPIO9
@@ -416,8 +417,13 @@ void init (void)
 	adc_disable_analog_watchdog(ADC1);
 	adc_power_on(ADC1);
 
+#ifdef RADATION
+	gpio_mode_setup(PORT_CLK, GPIO_MODE_OUTPUT, PIN_CLK);
+	gpio_mode_setup(PORT_DAT, GPIO_MODE_INPUT, PIN_DAT);
+#else
 #ifdef TESTING
 	gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO10 | GPIO9);
+#endif
 #endif
 
 	//uart
@@ -481,7 +487,7 @@ void usart1_isr(void)
 {
 	if (((USART_ISR(USART1) & USART_ISR_RXNE) != 0))
 	{
-		gpio_set(GPIOA,GPIO10 | GPIO9);
+		//gpio_set(GPIOA,GPIO10 | GPIO9);
 		uint8_t d = (uint8_t)USART1_RDR;
 
 		if (gnss_string_count == 0){ //look for '0xB5'
@@ -642,7 +648,7 @@ void usart1_isr(void)
 			}
 		}
 
-		gpio_clear(GPIOA,GPIO10 | GPIO9);
+		//gpio_clear(GPIOA,GPIO10 | GPIO9);
 	}
 	else// if (((USART_ISR(USART1) & USART_ISR_ORE) != 0))  //overrun, clear flag
 	{
@@ -751,7 +757,7 @@ int main(void)
 
 #ifdef MULTI_POS
 			if ((diff_count < MAX_POSITIONS_PER_SENTENCE))
-				k=process_packet(buff,100,3);
+				k=process_packet(buff,100,1);
 			else{
 				uint8_t d = find_diff_scaling();
 				uint8_t da = find_diff_scaling_alt();
@@ -864,6 +870,7 @@ void get_radiation(uint32_t *rad1, uint32_t *rad2, uint32_t *rad3, uint32_t *cur
 
 	uint8_t i,j;
 	uint32_t* din;
+	_delay_ms(1);
 
 	for (i = 0; i < 4; i++){
 
@@ -875,12 +882,14 @@ void get_radiation(uint32_t *rad1, uint32_t *rad2, uint32_t *rad3, uint32_t *cur
 		}
 
 		for (j = 0; j < 32; j++){
+			*din <<= 1;
 			gpio_set(CLK_PORT, CLK_PIN);
 			_delay_ms(1);
 			if (gpio_get(DAT_PORT, DAT_PIN))
 				*din |= 1;
 			gpio_clear(CLK_PORT, CLK_PIN);
-			*din <<= 1;
+
+			_delay_ms(1);
 		}
 	}
 }
@@ -1076,11 +1085,16 @@ uint16_t process_packet(char* buffer, uint16_t len, uint8_t format)
 		hb_buf_ptr = 0;
 		cmp_init(&cmp, (void*)buff, 0, file_writer);
 
-		if (format == 3)
-			cmp_write_map(&cmp, 10);
-		else
-			cmp_write_map(&cmp, 7);
+		uint8_t total_send = 6;
+#ifdef RADIATION
+		total_send += 2;
+#endif
+#ifdef UPLINK
+		total_send += 1;
+#endif
 
+		if (format == 3)
+			total_send += 3;
 
 		cmp_write_uint(&cmp, 0);
 #ifdef TESTING
@@ -1107,9 +1121,19 @@ uint16_t process_packet(char* buffer, uint16_t len, uint8_t format)
 		cmp_write_uint(&cmp, 40);
 		cmp_write_uint(&cmp, bv);
 
+#ifdef RADIATION
+		cmp_write_uint(&cmp, 41);
+		cmp_write_uint(&cmp, current & 0xFFFF);
+
+		cmp_write_uint(&cmp, 39);
+		cmp_write_array(&cmp, 2);
+		cmp_write_uint(&cmp, rad1);
+		cmp_write_uint(&cmp, rad2);
+#endif
+#ifdef UPLOAD
 		cmp_write_uint(&cmp, 50);
 		cmp_write_uint(&cmp, uplink_counter);
-
+#endif
 		if (format == 3){
 			uint16_t i;
 			cmp_write_uint(&cmp, 60);
