@@ -27,7 +27,7 @@ extern void initialise_monitor_handles(void);
 //#define LORA_RX		//old
 //#define UPLINK			//enables/disables uplink after each lora packet
 #define MULTI_POS		//enables the sending of multiple GPS positions in a packet. Only works with msgpack/lora
-#define TESTING		//disables the WDT and sets a fake payload name (to prevent being accidently left enabled)
+//#define TESTING		//disables the WDT and sets a fake payload name (to prevent being accidently left enabled)
 
 
 
@@ -502,7 +502,7 @@ void usart1_isr(void)
 	if (((USART_ISR(USART1) & USART_ISR_RXNE) != 0))
 	{
 
-		//gpio_set(GPIOA,GPIO10 | GPIO9);
+
 		uint8_t d = (uint8_t)USART1_RDR;
 
 		if (gnss_string_count == 0){ //look for '0xB5'
@@ -512,6 +512,8 @@ void usart1_isr(void)
 		else if (gnss_string_count == 1){ //look for '0x62'
 			if (d == 0x62)
 				gnss_string_count++;
+			else if (d == 0xB5)
+				gnss_string_count = 1;
 			else
 				gnss_string_count = 0;
 		}
@@ -536,17 +538,18 @@ void usart1_isr(void)
 			gnss_buff_ptr = &gnss_buff[0];
 		}
 		else if (gnss_string_count > 0){  //process payload + checksum
-
-			if (gnss_string_len < 255)
-				*gnss_buff_ptr++ = d;
-
-			if (gnss_string_count >= 256){
-				gnss_string_count = 0;   //something probably broke
-			//	gpio_set(GPIOF,GPIO1);
-			}
-
 			gnss_string_count++;
-			if ((gnss_string_count-6+2) == gnss_string_len) //got all bytes, check checksum
+
+			if (gnss_string_count < sizeof(gnss_buff))
+				*gnss_buff_ptr++ = d;
+			else
+				gnss_string_count = 0;   //something probably broke
+
+			//if (gnss_string_count >= 256){
+			//	gnss_string_count = 0;   //something probably broke
+			//}
+
+			if ((gnss_string_count-6-2) == gnss_string_len) //got all bytes, check checksum
 			{
 				//lets assume checksum == :)
 
@@ -614,9 +617,6 @@ void usart1_isr(void)
 								diff_valid = 1;
 							}
 						}
-						else{	//if this else gets called, it means the data is not being sent fast enough
-
-						}
 					}
 					else if ((diff_count>0) && (diff_count < MAX_POSITIONS_PER_SENTENCE)){
 						//if gps loses lock we still want to fill in the diff array
@@ -667,11 +667,12 @@ void usart1_isr(void)
 					gnss_status_updated = 1;
 					pos_updated = 1;
 				}
+
 				gnss_string_count = 0;  //wait for the next string
 			}
 		}
+		//gpio_clear(GPIOA,GPIO0);
 		//gpio_clear(GPIOF,GPIO1);
-		//gpio_clear(GPIOA,GPIO10 | GPIO9);
 	}
 	else// if (((USART_ISR(USART1) & USART_ISR_ORE) != 0))  //overrun, clear flag
 	{
