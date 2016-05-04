@@ -32,15 +32,15 @@ extern void initialise_monitor_handles(void);
 
 
 #ifdef MULTI_POS
-#define GPS_UPDATE_PERIOD 500				// in ms. Should be a factor of 1000
+#define GPS_UPDATE_PERIOD 200				// in ms. Should be a factor of 1000
 
 //Number of GPS positions to collect before starting to send another packet
 // MAX_POSITIONS_PER_SENTENCE/GPS_UPDATE_RATE   should ideally be an integer
-#define MAX_POSITIONS_PER_SENTENCE 6 //22    //TODO: ensure output buff is long enough
+#define MAX_POSITIONS_PER_SENTENCE 20 //22    //TODO: ensure output buff is long enough
 //memory usage: 3 bytes + 4 (scaling) + 2 (object 62) + 3*2 (describing arrays)
 
 //Number of msgpack bytes. See item below
-#define MAX_MSGPACK_LEN 40   //TODO: THIS
+#define MAX_MSGPACK_LEN 130   //TODO: THIS
 
 //Useful for testing. Ensure 'MAX_MSGPACK_LEN' number
 //  of bytes can be sent before all the GPS positions have been collected
@@ -48,8 +48,8 @@ extern void initialise_monitor_handles(void);
 #define PAD_MSGPACK_TO_MAX   //TODO: this
 
 static const uint8_t sentences_coding[] =    {CODING_4_5     };
-static const uint8_t sentences_spreading[] = {10             };
-static const uint8_t sentences_bandwidth[] = {BANDWIDTH_41_7K};
+static const uint8_t sentences_spreading[] = {8             };
+static const uint8_t sentences_bandwidth[] = {BANDWIDTH_20_8K};
 
 
 #else
@@ -94,7 +94,7 @@ void get_radiation(uint32_t* rad1, uint32_t* rad2, uint32_t* rad3, uint32_t* cur
 
 static uint8_t sentence_counter = 0;
 
-char buff[128] = {0};
+char buff[150] = {0};
 
 char gnss_buff[255] = {0};
 
@@ -417,13 +417,19 @@ void init (void)
 	adc_disable_analog_watchdog(ADC1);
 	adc_power_on(ADC1);
 
-#ifdef RADATION
-	gpio_mode_setup(PORT_CLK, GPIO_MODE_OUTPUT, PIN_CLK);
-	gpio_mode_setup(PORT_DAT, GPIO_MODE_INPUT, PIN_DAT);
+#ifdef RADIATION
+	gpio_mode_setup(CLK_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, CLK_PIN);
+	gpio_mode_setup(DAT_PORT, GPIO_MODE_INPUT, GPIO_PUPD_NONE, DAT_PIN);
 #else
 #ifdef TESTING
 	gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO10 | GPIO9);
 #endif
+#endif
+
+#ifdef TESTING
+	rcc_periph_clock_enable(RCC_GPIOF);
+	gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO0);
+	gpio_mode_setup(GPIOF, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO1);
 #endif
 
 	//uart
@@ -457,9 +463,16 @@ void init (void)
 	uart_send_blocking_len((uint8_t*)disable_nmea_gprmc,16);
 	uart_send_blocking_len((uint8_t*)disable_nmea_gpvtg,16);
 
-	uart_send_blocking_len((uint8_t*)set_rate,14);
+	memcpy(buff, set_rate,12);
+	buff[6] = GPS_UPDATE_PERIOD & 0xFF;
+	buff[7] = (GPS_UPDATE_PERIOD >> 8) & 0xFF;
+	uint16_t ubloxcrc = calculate_ublox_crc((uint8_t*)&buff[2],10);
 
-	uint16_t ubloxcrc = calculate_ublox_crc(&enable_navpvt[2],16-4);
+	uart_send_blocking_len((uint8_t*)buff,12);
+	usart_send_blocking(USART1,ubloxcrc>>8);
+	usart_send_blocking(USART1,ubloxcrc&0xFF);
+
+	ubloxcrc = calculate_ublox_crc(&enable_navpvt[2],16-4);
 	uart_send_blocking_len((uint8_t*)enable_navpvt,14);
 	usart_send_blocking(USART1,ubloxcrc>>8);
 	usart_send_blocking(USART1,ubloxcrc&0xFF);
@@ -485,8 +498,10 @@ void sys_tick_handler(void)
 
 void usart1_isr(void)
 {
+
 	if (((USART_ISR(USART1) & USART_ISR_RXNE) != 0))
 	{
+
 		//gpio_set(GPIOA,GPIO10 | GPIO9);
 		uint8_t d = (uint8_t)USART1_RDR;
 
@@ -506,7 +521,10 @@ void usart1_isr(void)
 		}
 		else if (gnss_string_count == 3){  //message id
 			gnss_message_id |= d;
-			gnss_string_count++;
+			if (gnss_message_id != 0x0107)
+				gnss_string_count = 0;  //not looking for this string, reset
+			else
+				gnss_string_count++;
 		}
 		else if (gnss_string_count == 4){  //length top byte
 			gnss_string_len = d;
@@ -522,15 +540,17 @@ void usart1_isr(void)
 			if (gnss_string_len < 255)
 				*gnss_buff_ptr++ = d;
 
-			if (gnss_string_count >= 256)
+			if (gnss_string_count >= 256){
 				gnss_string_count = 0;   //something probably broke
+			//	gpio_set(GPIOF,GPIO1);
+			}
 
 			gnss_string_count++;
-			if (gnss_string_count-6+2 == gnss_string_len) //got all bytes, check checksum
+			if ((gnss_string_count-6+2) == gnss_string_len) //got all bytes, check checksum
 			{
 				//lets assume checksum == :)
 
-				if (gnss_message_id == 0x0107 && gnss_string_len == 92)  //navpvt
+				if ((gnss_message_id == 0x0107) && (gnss_string_len == 92))  //navpvt
 				{
 					fixtype = gnss_buff[20];
 					uint8_t valid_time = gnss_buff[11];  //valid time flags
@@ -540,7 +560,7 @@ void usart1_isr(void)
 					{
 						hour = gnss_buff[8];
 						minute = gnss_buff[9];
-						second_prev = second;
+						//second_prev = second;
 						second = gnss_buff[10];
 						time_valid |= 1;
 					}
@@ -613,6 +633,9 @@ void usart1_isr(void)
 						//diff_count=0; //keep this at 0.
 					}
 
+					if (valid_time & (1<<1))
+						second_prev = gnss_buff[10];
+
 
 #else
 					if (fixtype == 2 || fixtype == 3){
@@ -647,7 +670,7 @@ void usart1_isr(void)
 				gnss_string_count = 0;  //wait for the next string
 			}
 		}
-
+		//gpio_clear(GPIOF,GPIO1);
 		//gpio_clear(GPIOA,GPIO10 | GPIO9);
 	}
 	else// if (((USART_ISR(USART1) & USART_ISR_ORE) != 0))  //overrun, clear flag
