@@ -22,24 +22,25 @@ extern void initialise_monitor_handles(void);
 
 #define RADIO_FREQ  FREQ_434_300
 
+#define RADIATION
 #define ENABLE_GPS		//comment out if a GPS is not yet fitted
 //#define LORA_RX		//old
 //#define UPLINK			//enables/disables uplink after each lora packet
 #define MULTI_POS		//enables the sending of multiple GPS positions in a packet. Only works with msgpack/lora
-#define TESTING		//disables the WDT and sets a fake payload name (to prevent being accidently left enabled)
+//#define TESTING		//disables the WDT and sets a fake payload name (to prevent being accidently left enabled)
 
 
 
 #ifdef MULTI_POS
-#define GPS_UPDATE_PERIOD 500				// in ms. Should be a factor of 1000
+#define GPS_UPDATE_PERIOD 200				// in ms. Should be a factor of 1000
 
 //Number of GPS positions to collect before starting to send another packet
 // MAX_POSITIONS_PER_SENTENCE/GPS_UPDATE_RATE   should ideally be an integer
-#define MAX_POSITIONS_PER_SENTENCE 6 //22    //TODO: ensure output buff is long enough
+#define MAX_POSITIONS_PER_SENTENCE 20 //22    //TODO: ensure output buff is long enough
 //memory usage: 3 bytes + 4 (scaling) + 2 (object 62) + 3*2 (describing arrays)
 
 //Number of msgpack bytes. See item below
-#define MAX_MSGPACK_LEN 40   //TODO: THIS
+#define MAX_MSGPACK_LEN 130   //TODO: THIS
 
 //Useful for testing. Ensure 'MAX_MSGPACK_LEN' number
 //  of bytes can be sent before all the GPS positions have been collected
@@ -47,8 +48,8 @@ extern void initialise_monitor_handles(void);
 #define PAD_MSGPACK_TO_MAX   //TODO: this
 
 static const uint8_t sentences_coding[] =    {CODING_4_5     };
-static const uint8_t sentences_spreading[] = {10             };
-static const uint8_t sentences_bandwidth[] = {BANDWIDTH_41_7K};
+static const uint8_t sentences_spreading[] = {8             };
+static const uint8_t sentences_bandwidth[] = {BANDWIDTH_20_8K};
 
 
 #else
@@ -84,11 +85,16 @@ uint8_t find_diff_scaling(void);
 uint8_t find_diff_scaling_alt(void);
 void process_diffs(uint8_t scaling_factor,uint8_t scaling_factor_alt);
 void process_diff(uint8_t scaling_factor, int32_t start_val, int32_t* input_diff, int8_t* output_diff);
+void get_radiation(uint32_t* rad1, uint32_t* rad2, uint32_t* rad3, uint32_t* current);
 
+#define CLK_PORT GPIOA
+#define CLK_PIN GPIO9
+#define DAT_PORT GPIOA
+#define DAT_PIN GPIO10
 
 static uint8_t sentence_counter = 0;
 
-char buff[128] = {0};
+char buff[150] = {0};
 
 char gnss_buff[255] = {0};
 
@@ -160,6 +166,13 @@ volatile int32_t prev_altitude = 0;
 volatile uint8_t second_prev = 99;
 uint16_t diff_scaling_factor = 1;
 uint8_t diff_scaling_factor_alt = 1;
+#endif
+
+#ifdef RADIATION
+	uint32_t rad1;
+	uint32_t rad2;
+	uint32_t rad3;
+	uint32_t current;
 #endif
 
 
@@ -404,8 +417,19 @@ void init (void)
 	adc_disable_analog_watchdog(ADC1);
 	adc_power_on(ADC1);
 
+#ifdef RADIATION
+	gpio_mode_setup(CLK_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, CLK_PIN);
+	gpio_mode_setup(DAT_PORT, GPIO_MODE_INPUT, GPIO_PUPD_NONE, DAT_PIN);
+#else
 #ifdef TESTING
 	gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO10 | GPIO9);
+#endif
+#endif
+
+#ifdef TESTING
+	rcc_periph_clock_enable(RCC_GPIOF);
+	gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO0);
+	gpio_mode_setup(GPIOF, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO1);
 #endif
 
 	//uart
@@ -439,9 +463,16 @@ void init (void)
 	uart_send_blocking_len((uint8_t*)disable_nmea_gprmc,16);
 	uart_send_blocking_len((uint8_t*)disable_nmea_gpvtg,16);
 
-	uart_send_blocking_len((uint8_t*)set_rate,14);
+	memcpy(buff, set_rate,12);
+	buff[6] = GPS_UPDATE_PERIOD & 0xFF;
+	buff[7] = (GPS_UPDATE_PERIOD >> 8) & 0xFF;
+	uint16_t ubloxcrc = calculate_ublox_crc((uint8_t*)&buff[2],10);
 
-	uint16_t ubloxcrc = calculate_ublox_crc(&enable_navpvt[2],16-4);
+	uart_send_blocking_len((uint8_t*)buff,12);
+	usart_send_blocking(USART1,ubloxcrc>>8);
+	usart_send_blocking(USART1,ubloxcrc&0xFF);
+
+	ubloxcrc = calculate_ublox_crc(&enable_navpvt[2],16-4);
 	uart_send_blocking_len((uint8_t*)enable_navpvt,14);
 	usart_send_blocking(USART1,ubloxcrc>>8);
 	usart_send_blocking(USART1,ubloxcrc&0xFF);
@@ -467,9 +498,11 @@ void sys_tick_handler(void)
 
 void usart1_isr(void)
 {
+
 	if (((USART_ISR(USART1) & USART_ISR_RXNE) != 0))
 	{
-		gpio_set(GPIOA,GPIO10 | GPIO9);
+
+
 		uint8_t d = (uint8_t)USART1_RDR;
 
 		if (gnss_string_count == 0){ //look for '0xB5'
@@ -479,6 +512,8 @@ void usart1_isr(void)
 		else if (gnss_string_count == 1){ //look for '0x62'
 			if (d == 0x62)
 				gnss_string_count++;
+			else if (d == 0xB5)
+				gnss_string_count = 1;
 			else
 				gnss_string_count = 0;
 		}
@@ -488,7 +523,10 @@ void usart1_isr(void)
 		}
 		else if (gnss_string_count == 3){  //message id
 			gnss_message_id |= d;
-			gnss_string_count++;
+			if (gnss_message_id != 0x0107)
+				gnss_string_count = 0;  //not looking for this string, reset
+			else
+				gnss_string_count++;
 		}
 		else if (gnss_string_count == 4){  //length top byte
 			gnss_string_len = d;
@@ -500,19 +538,22 @@ void usart1_isr(void)
 			gnss_buff_ptr = &gnss_buff[0];
 		}
 		else if (gnss_string_count > 0){  //process payload + checksum
+			gnss_string_count++;
 
-			if (gnss_string_len < 255)
+			if (gnss_string_count < sizeof(gnss_buff))
 				*gnss_buff_ptr++ = d;
-
-			if (gnss_string_count >= 256)
+			else
 				gnss_string_count = 0;   //something probably broke
 
-			gnss_string_count++;
-			if (gnss_string_count-6+2 == gnss_string_len) //got all bytes, check checksum
+			//if (gnss_string_count >= 256){
+			//	gnss_string_count = 0;   //something probably broke
+			//}
+
+			if ((gnss_string_count-6-2) == gnss_string_len) //got all bytes, check checksum
 			{
 				//lets assume checksum == :)
 
-				if (gnss_message_id == 0x0107 && gnss_string_len == 92)  //navpvt
+				if ((gnss_message_id == 0x0107) && (gnss_string_len == 92))  //navpvt
 				{
 					fixtype = gnss_buff[20];
 					uint8_t valid_time = gnss_buff[11];  //valid time flags
@@ -522,7 +563,7 @@ void usart1_isr(void)
 					{
 						hour = gnss_buff[8];
 						minute = gnss_buff[9];
-						second_prev = second;
+						//second_prev = second;
 						second = gnss_buff[10];
 						time_valid |= 1;
 					}
@@ -576,9 +617,6 @@ void usart1_isr(void)
 								diff_valid = 1;
 							}
 						}
-						else{	//if this else gets called, it means the data is not being sent fast enough
-
-						}
 					}
 					else if ((diff_count>0) && (diff_count < MAX_POSITIONS_PER_SENTENCE)){
 						//if gps loses lock we still want to fill in the diff array
@@ -594,6 +632,9 @@ void usart1_isr(void)
 
 						//diff_count=0; //keep this at 0.
 					}
+
+					if (valid_time & (1<<1))
+						second_prev = gnss_buff[10];
 
 
 #else
@@ -626,11 +667,12 @@ void usart1_isr(void)
 					gnss_status_updated = 1;
 					pos_updated = 1;
 				}
+
 				gnss_string_count = 0;  //wait for the next string
 			}
 		}
-
-		gpio_clear(GPIOA,GPIO10 | GPIO9);
+		//gpio_clear(GPIOA,GPIO0);
+		//gpio_clear(GPIOF,GPIO1);
 	}
 	else// if (((USART_ISR(USART1) & USART_ISR_ORE) != 0))  //overrun, clear flag
 	{
@@ -682,6 +724,10 @@ int main(void)
 
 		//calibrate_hsi();
 		uart_send_blocking_len((uint8_t*)flight_mode,44);
+
+#ifdef RADIATION
+		get_radiation(&rad1, &rad2, &rad3, &current);
+#endif
 
 		while((pos_updated == 0) && (gnss_status_updated == 0))
 			;//USART1_ICR = USART_ICR_ORECF | USART_ICR_FECF;
@@ -735,7 +781,7 @@ int main(void)
 
 #ifdef MULTI_POS
 			if ((diff_count < MAX_POSITIONS_PER_SENTENCE))
-				k=process_packet(buff,100,1);
+				k=process_packet(buff,100,0);
 			else{
 				uint8_t d = find_diff_scaling();
 				uint8_t da = find_diff_scaling_alt();
@@ -842,6 +888,36 @@ int main(void)
 
 	}
 }
+
+#ifdef RADIATION
+void get_radiation(uint32_t *rad1, uint32_t *rad2, uint32_t *rad3, uint32_t *current){
+
+	uint8_t i,j;
+	uint32_t* din;
+	_delay_ms(1);
+
+	for (i = 0; i < 4; i++){
+
+		switch(i){
+		case 0:	 din = rad1; break;
+		case 1:	 din = rad2; break;
+		case 2:	 din = rad3; break;
+		default: din = current; break;
+		}
+
+		for (j = 0; j < 32; j++){
+			*din <<= 1;
+			gpio_set(CLK_PORT, CLK_PIN);
+			_delay_ms(1);
+			if (gpio_get(DAT_PORT, DAT_PIN))
+				*din |= 1;
+			gpio_clear(CLK_PORT, CLK_PIN);
+
+			_delay_ms(1);
+		}
+	}
+}
+#endif
 
 void process_diff(uint8_t scaling_factor, int32_t start_val, int32_t* input_diff, int8_t* output_diff)
 {
@@ -978,6 +1054,7 @@ uint16_t process_packet(char* buffer, uint16_t len, uint8_t format)
 
 	if ((format == 1) || (format == 2)){
 		k=0;
+#ifndef MULTI_POS
 		if  (format == 2)
 			k=7;//snprintf(&buff[k],len,"xxxxx");
 #ifdef TESTING
@@ -1021,6 +1098,7 @@ uint16_t process_packet(char* buffer, uint16_t len, uint8_t format)
 			buff[k-1] = 0x80;
 			buff[k-2] = 0x80;
 		}
+#endif
 	}
 	else if ((format == 0) || (format == 3))
 	{
@@ -1031,11 +1109,18 @@ uint16_t process_packet(char* buffer, uint16_t len, uint8_t format)
 		hb_buf_ptr = 0;
 		cmp_init(&cmp, (void*)buff, 0, file_writer);
 
-		if (format == 3)
-			cmp_write_map(&cmp, 10);
-		else
-			cmp_write_map(&cmp, 7);
+		uint8_t total_send = 6;
+#ifdef RADIATION
+		total_send += 2;
+#endif
+#ifdef UPLINK
+		total_send += 1;
+#endif
 
+		if (format == 3)
+			total_send += 3;
+
+		cmp_write_map(&cmp,total_send);
 
 		cmp_write_uint(&cmp, 0);
 #ifdef TESTING
@@ -1062,9 +1147,19 @@ uint16_t process_packet(char* buffer, uint16_t len, uint8_t format)
 		cmp_write_uint(&cmp, 40);
 		cmp_write_uint(&cmp, bv);
 
+#ifdef RADIATION
+		cmp_write_uint(&cmp, 41);
+		cmp_write_uint(&cmp, current & 0xFFFF);
+
+		cmp_write_uint(&cmp, 39);
+		cmp_write_array(&cmp, 2);
+		cmp_write_uint(&cmp, rad1);
+		cmp_write_uint(&cmp, rad2);
+#endif
+#ifdef UPLOAD
 		cmp_write_uint(&cmp, 50);
 		cmp_write_uint(&cmp, uplink_counter);
-
+#endif
 		if (format == 3){
 			uint16_t i;
 			cmp_write_uint(&cmp, 60);
