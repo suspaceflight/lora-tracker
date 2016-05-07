@@ -10,6 +10,7 @@ typedef struct radio_lora_settings_s
  	uint8_t coding_rate;
  	uint8_t implicit_mode;
  	uint8_t crc_en;
+ 	uint8_t enable_auto_uplink;
  	uint8_t low_datarate;
  	uint32_t frequency;
  	uint8_t enable_frequency_tracking;

@@ -94,7 +94,7 @@ volatile radio_lora_settings_t s_lora;
 volatile uint16_t radio_bandwidth = 208;
 volatile radio_lora_settings_t s_currently_unsaved;
 
-volatile uint8_t auto_ping = 1;
+//volatile uint8_t auto_ping = 1;
 
 #define PRESET_MAX 12
 volatile radio_lora_settings_t presets[PRESET_MAX];
@@ -321,7 +321,6 @@ void exti4_15_isr(void)
 */
 	if ((EXTI_PR & (GPIO12)) != 0 || ((EXTI_PR & (GPIO15)) != 0))  //rotary encoder irq
 	{
-		int current_state;
 		// Don't do anything unless the debounce interval has expired
 		if (debounce_count == 0)
 		{
@@ -338,21 +337,8 @@ void exti4_15_isr(void)
 					rotary_acceleration += 150;
 					rotary_incdec = -1;
 				}
-
 			}
 
-
-
-			if (rotary_count >= 2){
-				rotary_incdec = -1;
-				rotary_count = 0;
-				rotary_acceleration += 150;
-			}
-			if (rotary_count <= -2){
-				rotary_incdec = 1;
-				rotary_count = 0;
-				rotary_acceleration += 150;
-			}
 
 			//now actually change stuff
 			if (ui_state == MENU_NONE){
@@ -705,6 +691,7 @@ int main(void)
 	s_lora.crc_en = 1;
 	s_lora.low_datarate = 1;
 	s_lora.enable_frequency_tracking = 1;
+	s_lora.enable_auto_uplink = 0;
 	s_lora.frequency = 434100000;
 
 
@@ -954,7 +941,7 @@ void process_packet(char *buff, uint16_t max_len)
 		send_uplink();
 		redraw_screen();
 	}
-	else if (auto_ping)
+	else if (s_lora.enable_auto_uplink) //(auto_ping)
 	{
 		//see if uplink window
 		//just assume all packets have uplink windows
@@ -1326,7 +1313,7 @@ static void redraw_screen(void)
 				break;
 			default: //MENU_AUTOPING
 				screen_write_text("M6 Autoping",0);
-				if (auto_ping)
+				if (s_currently_unsaved.enable_auto_uplink) //(auto_ping)
 					screen_write_text("Enabled",ROW_BOT);
 				else
 					screen_write_text("Disabled",ROW_BOT);
@@ -1428,7 +1415,8 @@ static void change_setting(int8_t direction)
 				break;
 			default: // MENU_AUTOPING:
 				if (direction != 0)
-					auto_ping = (~auto_ping) & 1;
+					s_currently_unsaved.enable_auto_uplink = (~s_currently_unsaved.enable_auto_uplink) & 1;
+					//auto_ping = (~auto_ping) & 1;
 				redraw_screen_flag = 1;
 				break;
 		}
