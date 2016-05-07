@@ -194,9 +194,9 @@ void init (void)
 	exti_set_trigger(EXTI12, EXTI_TRIGGER_BOTH);
 	exti_enable_request(EXTI12);
 	nvic_enable_irq(NVIC_EXTI4_15_IRQ);
-	exti_select_source(EXTI15, GPIOA);
-	exti_set_trigger(EXTI15, EXTI_TRIGGER_BOTH);
-	exti_enable_request(EXTI15);
+//	exti_select_source(EXTI15, GPIOA);
+//	exti_set_trigger(EXTI15, EXTI_TRIGGER_BOTH);
+//	exti_enable_request(EXTI15);
 
 	//menu button B6; preset button A5
 	gpio_mode_setup(GPIOB, GPIO_MODE_INPUT, GPIO_PUPD_PULLUP, GPIO6);
@@ -326,15 +326,22 @@ void exti4_15_isr(void)
 		if (debounce_count == 0)
 		{
 			int rotary_incdec = 0;
-			debounce_count = DEBOUNCE_INTERVAL_MS;
+			debounce_count = 2;
 
-			current_state = rotary_state((GPIO_IDR(BTN_ROTA_PORT) & BTN_ROTA_PIN) |
-					(GPIO_IDR(BTN_ROTB_PORT) & BTN_ROTB_PIN));
 
-			if(current_state == rotary_state_next(rotary_prev))  //next screen
-				rotary_count++;
-			if(current_state == rotary_state_prev(rotary_prev))  //prev screen
-				rotary_count--;
+			if (!(rotary_prev & (2<<2))){  //if falling edge
+				if (rotary_prev & (1<<2)){
+					rotary_acceleration += 150;
+					rotary_incdec = 1;
+				}
+				else{
+					rotary_acceleration += 150;
+					rotary_incdec = -1;
+				}
+
+			}
+
+
 
 			if (rotary_count >= 2){
 				rotary_incdec = -1;
@@ -523,14 +530,17 @@ void sys_tick_handler(void)
 	if (debounce_count)
 	{
 		debounce_count--;
-		rotary_prev = rotary_state((GPIO_IDR(BTN_ROTA_PORT) & BTN_ROTA_PIN) |
-				(GPIO_IDR(BTN_ROTB_PORT) & BTN_ROTB_PIN));
+		//rotary_prev = rotary_state((GPIO_IDR(BTN_ROTA_PORT) & BTN_ROTA_PIN) |
+		//		(GPIO_IDR(BTN_ROTB_PORT) & BTN_ROTB_PIN));
 
 	}
+	rotary_prev = (rotary_prev << 2) | rotary_state((GPIO_IDR(BTN_ROTA_PORT) & BTN_ROTA_PIN) |
+				(GPIO_IDR(BTN_ROTB_PORT) & BTN_ROTB_PIN));
+
 
 	if (rotary_acceleration)
 	{
-		rotary_acceleration -= 1;
+		rotary_acceleration -= 2;
 	}
 
 	if (bt_prescaler == 0){
