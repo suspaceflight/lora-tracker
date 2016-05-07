@@ -118,6 +118,10 @@ uint8_t parse_habpack(char *buff, uint16_t max_in_len, char *call, uint32_t *seq
 				break;
 		}
 
+		//if everything useful is parsed, exit early
+		//this saves having to deal with habpack fully
+		if (out == 0x1E)
+			return out | 1;
 	}
 
 	return out | 1;

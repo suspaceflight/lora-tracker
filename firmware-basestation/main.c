@@ -644,6 +644,7 @@ int main(void)
 {
 
 	init();
+	_delay_ms(100);
 	screen_init();
 	bluetooth_init();
 	usart_enable_rx_interrupt(USART2);
@@ -1238,9 +1239,9 @@ static void redraw_screen(void)
 				screen_write_text("RSSI: ",0);
 				if (ui_rssi < 0){
 					uint8_t r = ((ui_rssi+130)/10);
-					snprintf(buff,r+2,"###########");
+					snprintf(buff,r+2,"\x02\x02\x02\x02\x02\x02\x02\x02\x02\x02\x02");
+					screen_write_text(buff,6);
 				}
-				screen_write_text(buff,6);
 				snprintf(buff,17,"Last Rx: %lus",(unsigned long)time_since_last);
 				screen_write_text(buff,ROW_BOT);
 				break;
