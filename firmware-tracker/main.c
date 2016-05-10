@@ -22,9 +22,10 @@ extern void initialise_monitor_handles(void);
 
 #define RADIO_FREQ  FREQ_434_300
 
+#define CALLSIGN_STR "FSFU"
+
 #define RADIATION
 #define ENABLE_GPS		//comment out if a GPS is not yet fitted
-//#define LORA_RX		//old
 //#define UPLINK			//enables/disables uplink after each lora packet
 #define MULTI_POS		//enables the sending of multiple GPS positions in a packet. Only works with msgpack/lora
 //#define TESTING		//disables the WDT and sets a fake payload name (to prevent being accidently left enabled)
@@ -55,13 +56,13 @@ static const uint8_t sentences_bandwidth[] = {BANDWIDTH_20_8K};
 #else
 #define GPS_UPDATE_PERIOD 1000
 
-static const uint8_t sentences_coding[] =    {CODING_4_8,      CODING_4_6,      CODING_4_8,      CODING_4_5,      CODING_4_6,      CODING_4_6,     CODING_4_5,     0};
-static const uint8_t sentences_spreading[] = {11,              8 ,              11,              8,               8,               11,             7,              0};
-static const uint8_t sentences_bandwidth[] = {BANDWIDTH_20_8K, BANDWIDTH_20_8K, BANDWIDTH_41_7K, BANDWIDTH_41_7K, BANDWIDTH_20_8K, BANDWIDTH_20_8K, BANDWIDTH_125K, RTTY_SENTENCE};
+//static const uint8_t sentences_coding[] =    {CODING_4_8,      CODING_4_6,      CODING_4_8,      CODING_4_5,      CODING_4_6,      CODING_4_6,     CODING_4_5,     0};
+//static const uint8_t sentences_spreading[] = {11,              8 ,              11,              8,               8,               11,             7,              0};
+//static const uint8_t sentences_bandwidth[] = {BANDWIDTH_20_8K, BANDWIDTH_20_8K, BANDWIDTH_41_7K, BANDWIDTH_41_7K, BANDWIDTH_20_8K, BANDWIDTH_20_8K, BANDWIDTH_125K, RTTY_SENTENCE};
 
-//static const uint8_t sentences_coding[] =    {CODING_4_5,       0, 0};
-//static const uint8_t sentences_spreading[] = {10,               0, 0};
-//static const uint8_t sentences_bandwidth[] = {BANDWIDTH_41_7K,  RTTY_SENTENCE, RTTY_SENTENCE};
+static const uint8_t sentences_coding[] =    {CODING_4_5,       0, 0};
+static const uint8_t sentences_spreading[] = {10,               0, 0};
+static const uint8_t sentences_bandwidth[] = {BANDWIDTH_41_7K,  RTTY_SENTENCE, RTTY_SENTENCE};
 #endif
 
 #define TOTAL_SENTENCES (sizeof(sentences_coding)/sizeof(uint8_t))
@@ -419,7 +420,7 @@ void init (void)
 
 #ifdef RADIATION
 	gpio_mode_setup(CLK_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, CLK_PIN);
-	gpio_mode_setup(DAT_PORT, GPIO_MODE_INPUT, GPIO_PUPD_NONE, DAT_PIN);
+	gpio_mode_setup(DAT_PORT, GPIO_MODE_INPUT, GPIO_PUPD_PULLDOWN, DAT_PIN);
 #else
 #ifdef TESTING
 	gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO10 | GPIO9);
@@ -506,8 +507,10 @@ void usart1_isr(void)
 		uint8_t d = (uint8_t)USART1_RDR;
 
 		if (gnss_string_count == 0){ //look for '0xB5'
-			if (d == 0xB5)
+			if (d == 0xB5){
 				gnss_string_count++;
+				gpio_set(GPIOF,GPIO1);
+			}
 		}
 		else if (gnss_string_count == 1){ //look for '0x62'
 			if (d == 0x62)
@@ -552,7 +555,7 @@ void usart1_isr(void)
 			if ((gnss_string_count-6-2) == gnss_string_len) //got all bytes, check checksum
 			{
 				//lets assume checksum == :)
-
+				gpio_set(GPIOF,GPIO1);
 				if ((gnss_message_id == 0x0107) && (gnss_string_len == 92))  //navpvt
 				{
 					fixtype = gnss_buff[20];
@@ -571,6 +574,7 @@ void usart1_isr(void)
 					if (fixtype == 2 || fixtype == 3){
 						if((diff_count>0) && (diff_count < MAX_POSITIONS_PER_SENTENCE)){
 							int32_t temp;
+							gpio_set(GPIOA,GPIO0);
 							temp = (gnss_buff[31] << 24)
 									 | (gnss_buff[30] << 16)
 									 | (gnss_buff[29] << 8)
@@ -596,6 +600,7 @@ void usart1_isr(void)
 						}
 						else if (diff_count==0){
 							//check if time is aligned to .000 sec
+							gpio_set(GPIOA,GPIO0);
 							if ((valid_time & (1<<1)) && (second_prev != second)){
 								latitude = (gnss_buff[31] << 24)
 										 | (gnss_buff[30] << 16)
@@ -671,8 +676,8 @@ void usart1_isr(void)
 				gnss_string_count = 0;  //wait for the next string
 			}
 		}
-		//gpio_clear(GPIOA,GPIO0);
-		//gpio_clear(GPIOF,GPIO1);
+		gpio_clear(GPIOA,GPIO0);
+		gpio_clear(GPIOF,GPIO1);
 	}
 	else// if (((USART_ISR(USART1) & USART_ISR_ORE) != 0))  //overrun, clear flag
 	{
@@ -919,6 +924,7 @@ void get_radiation(uint32_t *rad1, uint32_t *rad2, uint32_t *rad3, uint32_t *cur
 }
 #endif
 
+#ifdef MULTI_POS
 void process_diff(uint8_t scaling_factor, int32_t start_val, int32_t* input_diff, int8_t* output_diff)
 {
 	int32_t acc, current, diff;
@@ -1024,7 +1030,7 @@ uint8_t find_diff_scaling_alt(void)
 	}
 	return out;
 }
-
+#endif
 
 //returns length written
 //format - 0 = habpack
@@ -1060,7 +1066,7 @@ uint16_t process_packet(char* buffer, uint16_t len, uint8_t format)
 #ifdef TESTING
 		k+=snprintf(&buff[k],len-k,"$$PAYIOAD,%u,",payload_counter++);
 #else
-		k+=snprintf(&buff[k],len-k,"$$SUSF,%u,",payload_counter++);
+		k+=snprintf(&buff[k],len-k,"$$%s,%u,",CALLSIGN_STR,payload_counter++);
 #endif
 		if (time_valid)
 			k+=snprintf(&buff[k],len-k,"%02u:%02u:%02u,",
@@ -1126,7 +1132,7 @@ uint16_t process_packet(char* buffer, uint16_t len, uint8_t format)
 #ifdef TESTING
 		cmp_write_str(&cmp, "PAYIOAD", 7);
 #else
-		cmp_write_str(&cmp, "SUSF", 4);
+		cmp_write_str(&cmp, CALLSIGN_STR, (sizeof(CALLSIGN_STR)/sizeof(char))-1);
 #endif
 
 		cmp_write_uint(&cmp, 1);
@@ -1160,6 +1166,7 @@ uint16_t process_packet(char* buffer, uint16_t len, uint8_t format)
 		cmp_write_uint(&cmp, 50);
 		cmp_write_uint(&cmp, uplink_counter);
 #endif
+#ifdef MULTIPOS
 		if (format == 3){
 			uint16_t i;
 			cmp_write_uint(&cmp, 60);
@@ -1181,7 +1188,7 @@ uint16_t process_packet(char* buffer, uint16_t len, uint8_t format)
 				cmp_write_int(&cmp, diff_alt_out[i]);
 
 		}
-
+#endif
 		return hb_buf_ptr;
 	}
 	else
