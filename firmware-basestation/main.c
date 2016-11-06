@@ -31,6 +31,11 @@ char buff[128] = {0};
 char buff_tx[32] = {0};
 
 
+#include "../cutdownpwd.h"
+//const char cutdown_text[] = "CUTDOWNpassword";
+
+
+
 #define BTBUFFLEN 256
 char bt_buff[BTBUFFLEN];
 volatile uint16_t bt_buff_ptr_w = 0;
@@ -151,7 +156,7 @@ static ui_uplink_msg_t inc_uplink_msg(ui_uplink_msg_t in);
 static ui_uplink_msg_t dec_uplink_msg(ui_uplink_msg_t in);
 static void switch_to_rx(void);
 static void switch_to_tx(void);
-static void send_uplink(void);
+static void send_uplink(ui_uplink_msg_t uplink_type);
 static void low_batt(void);
 
 void init_wdt(void)
@@ -799,10 +804,10 @@ int main(void)
 			ui_state = MENU_NONE;
 			screen_write_text("Transmitting... ",0);
 			screen_clear_row(ROW_BOT);
-			send_uplink();
-			send_uplink();
-			send_uplink();
-			send_uplink();
+			send_uplink(ui_selected_uplink);
+			send_uplink(ui_selected_uplink);
+			send_uplink(ui_selected_uplink);
+			send_uplink(ui_selected_uplink);
 			redraw_screen();
 		}
 
@@ -938,7 +943,7 @@ void process_packet(char *buff, uint16_t max_len)
 		//see if uplink window
 		//just assume all packets have uplink windows
 		screen_write_text("Transmitting... ",0);
-		send_uplink();
+		send_uplink(ui_selected_uplink);
 		redraw_screen();
 	}
 	else if (s_lora.enable_auto_uplink) //(auto_ping)
@@ -946,7 +951,7 @@ void process_packet(char *buff, uint16_t max_len)
 		//see if uplink window
 		//just assume all packets have uplink windows
 		screen_write_text("Transmitting... ",0);
-		send_uplink();
+		send_uplink(UP_PING);
 		redraw_screen();
 	}
 
@@ -1589,11 +1594,14 @@ static void switch_to_tx(void)
 
 }
 
-static void send_uplink(void)
+static void send_uplink(ui_uplink_msg_t uplink_type)
 {
 	switch_to_tx();
 	uint8_t i=snprintf(buff_tx,60,"PINGPINGPING");
-	radio_tx_packet((uint8_t*)buff_tx,i);
+	if (uplink_type == UP_CUTDOWN)
+		radio_tx_packet((uint8_t*)cutdown_text,sizeof(cutdown_text)/sizeof(uint8_t));
+	else
+		radio_tx_packet((uint8_t*)buff_tx,i);
 	_delay_ms(200);
 	while(lora_in_progress())
 		_delay_ms(50);

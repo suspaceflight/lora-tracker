@@ -38,3 +38,5 @@ eagle.epf
 *.cogui
 *.comemgui
 *.comarker
+
+cutdownpwd.h

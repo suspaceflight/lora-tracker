@@ -24,13 +24,18 @@ extern void initialise_monitor_handles(void);
 
 #define CALLSIGN_STR "FSFU"
 
-#define RADIATION
+//#define RADIATION
 #define ENABLE_GPS		//comment out if a GPS is not yet fitted
-//#define UPLINK			//enables/disables uplink after each lora packet
-#define MULTI_POS		//enables the sending of multiple GPS positions in a packet. Only works with msgpack/lora
-//#define TESTING		//disables the WDT and sets a fake payload name (to prevent being accidently left enabled)
+#define UPLINK			//enables/disables uplink after each lora packet
+//#define MULTI_POS		//enables the sending of multiple GPS positions in a packet. Only works with msgpack/lora
+#define TESTING		//disables the WDT and sets a fake payload name (to prevent being accidently left enabled)
+#define CUTDOWN			//checks the uplinked message when cutdown is needed
+//#define HABPACK
 
-
+#ifdef CUTDOWN
+#include "../cutdownpwd.h"
+//const char cutdown_text[] = "CUTDOWNpassword";
+#endif
 
 #ifdef MULTI_POS
 #define GPS_UPDATE_PERIOD 200				// in ms. Should be a factor of 1000
@@ -52,7 +57,11 @@ static const uint8_t sentences_coding[] =    {CODING_4_5     };
 static const uint8_t sentences_spreading[] = {8             };
 static const uint8_t sentences_bandwidth[] = {BANDWIDTH_20_8K};
 
-
+#ifdef HABPACK
+#else
+#define HABPACK
+#warning "HABPACK has been turned on for multi-pos option"
+#endif
 #else
 #define GPS_UPDATE_PERIOD 1000
 
@@ -60,9 +69,9 @@ static const uint8_t sentences_bandwidth[] = {BANDWIDTH_20_8K};
 //static const uint8_t sentences_spreading[] = {11,              8 ,              11,              8,               8,               11,             7,              0};
 //static const uint8_t sentences_bandwidth[] = {BANDWIDTH_20_8K, BANDWIDTH_20_8K, BANDWIDTH_41_7K, BANDWIDTH_41_7K, BANDWIDTH_20_8K, BANDWIDTH_20_8K, BANDWIDTH_125K, RTTY_SENTENCE};
 
-static const uint8_t sentences_coding[] =    {CODING_4_5,       0, 0};
-static const uint8_t sentences_spreading[] = {10,               0, 0};
-static const uint8_t sentences_bandwidth[] = {BANDWIDTH_41_7K,  RTTY_SENTENCE, RTTY_SENTENCE};
+static const uint8_t sentences_coding[] =    {CODING_4_5,       };//0, 0};
+static const uint8_t sentences_spreading[] = {10,               };//0, 0};
+static const uint8_t sentences_bandwidth[] = {BANDWIDTH_41_7K,  };//RTTY_SENTENCE, RTTY_SENTENCE};
 #endif
 
 #define TOTAL_SENTENCES (sizeof(sentences_coding)/sizeof(uint8_t))
@@ -151,6 +160,9 @@ volatile uint16_t ms_countdown = 0;
 
 uint16_t payload_counter = 0;
 uint16_t uplink_counter = 0;
+uint16_t cutdown_counter = 0;
+uint8_t cutdown_status = 0;
+
 
 #ifdef MULTI_POS
 volatile int32_t diff_lat [MAX_POSITIONS_PER_SENTENCE-1] = {0};  //TODO: check these are fine as int16
@@ -418,13 +430,19 @@ void init (void)
 	adc_disable_analog_watchdog(ADC1);
 	adc_power_on(ADC1);
 
-#ifdef RADIATION
-	gpio_mode_setup(CLK_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, CLK_PIN);
-	gpio_mode_setup(DAT_PORT, GPIO_MODE_INPUT, GPIO_PUPD_PULLDOWN, DAT_PIN);
+#ifdef CUTDOWN
+	gpio_mode_setup(GPIOA, GPIO_MODE_INPUT, GPIO_PUPD_PULLDOWN, GPIO9);
+	gpio_mode_setup(GPIOA, GPIO_MODE_INPUT, GPIO_PUPD_NONE, GPIO10);
 #else
 #ifdef TESTING
 	gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO10 | GPIO9);
 #endif
+#endif
+#ifdef RADIATION
+	gpio_mode_setup(CLK_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, CLK_PIN);
+	gpio_mode_setup(DAT_PORT, GPIO_MODE_INPUT, GPIO_PUPD_PULLDOWN, DAT_PIN);
+#else
+
 #endif
 
 #ifdef TESTING
@@ -733,6 +751,9 @@ int main(void)
 #ifdef RADIATION
 		get_radiation(&rad1, &rad2, &rad3, &current);
 #endif
+#ifdef CUTDOWN
+		cutdown_status = gpio_get(GPIOA,GPIO9) > 0;
+#endif
 
 		while((pos_updated == 0) && (gnss_status_updated == 0))
 			;//USART1_ICR = USART_ICR_ORECF | USART_ICR_FECF;
@@ -866,6 +887,33 @@ int main(void)
 					{
 						count = 0;
 						uplink_counter++;
+#ifdef CUTDOWN
+						//get message - reuse tx buffer
+						int16_t r = radio_check_read_rx_packet(sizeof(buff)/sizeof(char),(uint8_t*)buff,1);
+						if (r > 0)
+						{
+							//parse uplinked text...
+							uint8_t cut = 1;
+							uint8_t cmp_ptr;
+							if ( r == (sizeof(cutdown_text)/sizeof(char))){
+								for (cmp_ptr = 0; cmp_ptr < r; cmp_ptr++){
+									if (buff[cmp_ptr] != cutdown_text[cmp_ptr])
+										cut = 0;
+								}
+								if (cut){
+									cutdown_counter++;
+									gpio_mode_setup(GPIOB, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO1);
+									gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO10);  //FIRE!
+									gpio_clear(GPIOA,GPIO10);
+									_delay_ms(2000);
+									gpio_mode_setup(GPIOB, GPIO_MODE_INPUT, GPIO_PUPD_NONE, GPIO1);
+									gpio_mode_setup(GPIOA, GPIO_MODE_INPUT, GPIO_PUPD_NONE, GPIO10);
+
+								}
+							}
+
+						}
+#endif
 					}
 					else
 						count--;
@@ -1082,7 +1130,13 @@ uint16_t process_packet(char* buffer, uint16_t len, uint8_t format)
 					_sats);
 
 		k+=snprintf(&buff[k],len-k,",%u,%u",bv,uplink_counter);
-
+#ifdef CUTDOWN
+		k+=snprintf(&buff[k],len-k,",%u",cutdown_counter);
+		if (cutdown_status)
+			k+=snprintf(&buff[k],len-k,",OK");
+		else
+			k+=snprintf(&buff[k],len-k,",ERR");
+#endif
 		uint16_t crc;
 
 		if (format == 2){
@@ -1108,6 +1162,7 @@ uint16_t process_packet(char* buffer, uint16_t len, uint8_t format)
 	}
 	else if ((format == 0) || (format == 3))
 	{
+#ifdef HABPACK
 		memset((void*)buff,0,len);
 		hb_buf_ptr = 0;
 
@@ -1186,8 +1241,8 @@ uint16_t process_packet(char* buffer, uint16_t len, uint8_t format)
 			cmp_write_array(&cmp, MAX_POSITIONS_PER_SENTENCE-1);
 			for (i = 0; i < MAX_POSITIONS_PER_SENTENCE-1; i++)
 				cmp_write_int(&cmp, diff_alt_out[i]);
-
 		}
+#endif
 #endif
 		return hb_buf_ptr;
 	}

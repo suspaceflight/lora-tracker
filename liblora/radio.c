@@ -423,6 +423,7 @@ void radio_clear_irq(void)
 	radio_write_single_reg(REG_IRQ_FLAGS, 0xFF);
 }
 */
+
 int16_t radio_check_read_rx_packet(uint16_t max_len, uint8_t *buff, uint8_t check_crc)
 {
 	//check rx timeout, validheader
